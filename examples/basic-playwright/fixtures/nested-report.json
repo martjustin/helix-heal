@@ -1,0 +1,65 @@
+{
+  "suites": [
+    {
+      "title": "e2e",
+      "suites": [
+        {
+          "title": "checkout.spec.ts",
+          "file": "tests/checkout.spec.ts",
+          "specs": [
+            {
+              "title": "checkout submit button works",
+              "file": "tests/checkout.spec.ts",
+              "line": 12,
+              "column": 5,
+              "tests": [
+                {
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "status": "failed",
+                      "retry": 1,
+                      "error": {
+                        "message": "TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for locator(\"[data-testid=\\\"submit-order\\\"]\")",
+                        "stack": "at tests/checkout.spec.ts:12:5"
+                      },
+                      "attachments": [
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "test-results/checkout-retry1/trace.zip"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "title": "settings can be saved",
+              "line": 31,
+              "tests": [
+                {
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "status": "failed",
+                      "errors": [
+                        {
+                          "message": "Error: expect(getByRole(\"button\", { name: \"Save\" })).toBeVisible() failed"
+                        }
+                      ]
+                    },
+                    {
+                      "status": "passed"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -17,11 +17,21 @@ export type NormalizedFailure = {
   testTitle: string;
   testFile: string;
   line?: number;
+  column?: number;
+  projectName?: string;
+  retry?: number;
+  status?: string;
   errorMessage: string;
+  errorStack?: string;
   failedSelector?: string;
   action?: PlaywrightAction;
   tracePath?: string;
   pageUrl?: string;
+  attachments?: Array<{
+    name: string;
+    contentType?: string;
+    path?: string;
+  }>;
 };
 
 export type CandidateLocator = {
@@ -61,4 +71,3 @@ export type AnalyzeResult = {
   suggestions: HealingSuggestion[];
   unsupported: NormalizedFailure[];
 };
-
