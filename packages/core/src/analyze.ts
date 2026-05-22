@@ -1,6 +1,7 @@
 import { classifyFailure, isHealableCategory } from "./classifier.js";
 import { generateCandidates } from "./candidates.js";
 import { rankCandidates } from "./ranker.js";
+import { validateCandidates } from "./validator.js";
 import type { AnalyzeInput, AnalyzeResult, HealingSuggestion, NormalizedFailure } from "./types.js";
 
 export function analyzeFailures(input: AnalyzeInput): AnalyzeResult {
@@ -15,7 +16,8 @@ export function analyzeFailures(input: AnalyzeInput): AnalyzeResult {
       continue;
     }
 
-    const candidates = rankCandidates(generateCandidates(failure, input.config), input.config);
+    const generatedCandidates = generateCandidates(failure, input.config);
+    const candidates = rankCandidates(validateCandidates(generatedCandidates, failure), input.config);
     const recommended = candidates.find(
       (candidate) => candidate.confidence >= input.config.minSuggestionConfidence
     );
@@ -30,4 +32,3 @@ export function analyzeFailures(input: AnalyzeInput): AnalyzeResult {
 
   return { suggestions, unsupported };
 }
-

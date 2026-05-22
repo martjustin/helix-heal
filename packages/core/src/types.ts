@@ -68,6 +68,13 @@ export type CandidateLocator = {
   strategy: "role" | "label" | "testId" | "text" | "css" | "unknown";
   source: "deterministic" | "cache" | "llm";
   evidence: string[];
+  validation?: CandidateValidation;
+};
+
+export type CandidateValidation = {
+  status: "passed" | "failed" | "unknown";
+  matchCount?: number;
+  reasons: string[];
 };
 
 export type RankedLocator = CandidateLocator & {

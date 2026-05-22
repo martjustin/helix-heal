@@ -61,6 +61,10 @@ describe("analyzeFailures", () => {
     expect(result.suggestions[0]?.candidates.map((candidate) => candidate.locator)).toContain(
       'page.getByTestId("login-submit")'
     );
+    expect(result.suggestions[0]?.recommended?.validation).toMatchObject({
+      status: "passed",
+      matchCount: 1
+    });
   });
 
   it("separates unsupported failures", () => {
