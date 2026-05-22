@@ -43,8 +43,45 @@ describe("generateDryRunPatches", () => {
     );
 
     expect(changes).toHaveLength(1);
+    expect(changes[0]?.diagnostics).toContain(
+      "AST located exactly one matching Playwright locator call"
+    );
     expect(renderPatchSet(changes)).toContain(
       'await page.getByRole("button", { name: "Log in" }).click();'
     );
+  });
+
+  it("refuses ambiguous locator replacements", async () => {
+    const result = analyzeFailures({
+      config: defaultConfig,
+      failures: [
+        {
+          testTitle: "ambiguous",
+          testFile: "tests/ambiguous.spec.ts",
+          errorMessage:
+            'TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByText("Sign in")',
+          failedSelector: 'getByText("Sign in")',
+          action: "click",
+          traceContext: {
+            tracePath: "trace-dir",
+            actions: [],
+            domSnapshots: [
+              {
+                source: "snapshot",
+                html: '<button aria-label="Log in">Log in</button>'
+              }
+            ],
+            accessibilityNodes: [{ role: "button", name: "Log in" }]
+          }
+        }
+      ]
+    });
+
+    const changes = await generateDryRunPatches(
+      result,
+      resolve(process.cwd(), "../../examples/basic-playwright")
+    );
+
+    expect(changes).toHaveLength(0);
   });
 });
