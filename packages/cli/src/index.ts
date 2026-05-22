@@ -3,11 +3,14 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import {
   analyzeFailures,
+  applyLiveValidationWithPage,
   generateDryRunPatches,
   loadConfig,
   renderMarkdownReport,
   renderPatchSet,
-  renderTextReport
+  renderTextReport,
+  type AnalyzeResult,
+  type HelixConfig
 } from "@helix-heal/core";
 import { extractTraceContext, ingestPlaywrightJsonReport } from "@helix-heal/playwright-ingest";
 
@@ -18,6 +21,7 @@ type CliOptions = {
   trace?: string;
   dryRun?: boolean;
   sourceRoot?: string;
+  liveUrl?: string;
 };
 
 async function main(): Promise<void> {
@@ -93,7 +97,32 @@ async function analyzeFromOptions(options: CliOptions) {
     traceContext: traceContext ?? failure.traceContext,
     pageUrl: failure.pageUrl ?? traceContext?.pageUrl
   }));
-  return analyzeFailures({ failures, config });
+  const result = analyzeFailures({ failures, config });
+
+  if (options.liveUrl) {
+    await applyOptionalLiveValidation(result, config, options.liveUrl);
+  }
+
+  return result;
+}
+
+async function applyOptionalLiveValidation(
+  result: AnalyzeResult,
+  config: HelixConfig,
+  liveUrl: string
+): Promise<void> {
+  try {
+    const playwright = await import("playwright");
+    const browser = await playwright.chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto(liveUrl);
+    await applyLiveValidationWithPage(result, config, page);
+    await browser.close();
+  } catch (error) {
+    console.warn(
+      `Live validation skipped: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 async function runDoctor(): Promise<void> {
@@ -124,6 +153,9 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === "--source-root" && next) {
       options.sourceRoot = next;
       index += 1;
+    } else if (arg === "--live-url" && next) {
+      options.liveUrl = next;
+      index += 1;
     } else if (arg === "--dry-run") {
       options.dryRun = true;
     }
@@ -145,6 +177,7 @@ Options:
   --output   Path for Markdown report
   --trace    Path to a Playwright trace zip or extracted trace directory
   --source-root  Directory used to resolve test file paths for patches
+  --live-url  Optional URL for live Playwright validation
   --dry-run  Print a reviewable patch without applying it
 `);
 }

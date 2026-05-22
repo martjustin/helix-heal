@@ -78,6 +78,7 @@ export type CandidateLocator = {
 
 export type CandidateValidation = {
   status: "passed" | "failed" | "unknown";
+  mode?: "static" | "live";
   matchCount?: number;
   reasons: string[];
 };

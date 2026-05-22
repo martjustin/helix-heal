@@ -18,6 +18,7 @@ function validateCandidate(
   if (!context) {
     return {
       status: "unknown",
+      mode: "static",
       reasons: ["no trace context available for validation"]
     };
   }
@@ -26,6 +27,7 @@ function validateCandidate(
   if (matchCount === undefined) {
     return {
       status: "unknown",
+      mode: "static",
       reasons: ["candidate strategy is not statically validated yet"]
     };
   }
@@ -33,6 +35,7 @@ function validateCandidate(
   if (matchCount === 1) {
     return {
       status: "passed",
+      mode: "static",
       matchCount,
       reasons: ["candidate resolves to one trace-backed element"]
     };
@@ -41,6 +44,7 @@ function validateCandidate(
   if (matchCount === 0) {
     return {
       status: "failed",
+      mode: "static",
       matchCount,
       reasons: ["candidate did not match trace DOM or accessibility evidence"]
     };
@@ -48,6 +52,7 @@ function validateCandidate(
 
   return {
     status: "failed",
+    mode: "static",
     matchCount,
     reasons: [`candidate matched ${matchCount} trace-backed elements`]
   };

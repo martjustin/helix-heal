@@ -33,6 +33,10 @@ function clamp(value: number): number {
 
 function validationConfidenceAdjustment(candidate: CandidateLocator): number {
   if (candidate.validation?.status === "passed") {
+    if (candidate.validation.mode === "live") {
+      return 0.08;
+    }
+
     return candidate.validation.matchCount === 1 ? 0.05 : 0.02;
   }
 
