@@ -36,18 +36,15 @@ async function runAnalyze(options: CliOptions): Promise<void> {
   const reportPath = resolve(cwd, options.report ?? "playwright-report.json");
   const outputPath = resolve(cwd, options.output ?? ".helix/helix-heal-report.md");
   const config = await loadConfig(cwd);
-  const failures = await ingestPlaywrightJsonReport(reportPath);
   const traceContext = options.trace
     ? await extractTraceContext(resolve(cwd, options.trace))
     : undefined;
+  const failures = (await ingestPlaywrightJsonReport(reportPath)).map((failure) => ({
+    ...failure,
+    traceContext: traceContext ?? failure.traceContext,
+    pageUrl: failure.pageUrl ?? traceContext?.pageUrl
+  }));
   const result = analyzeFailures({ failures, config });
-
-  if (traceContext) {
-    for (const suggestion of result.suggestions) {
-      suggestion.failure.traceContext = traceContext;
-      suggestion.failure.pageUrl ??= traceContext.pageUrl;
-    }
-  }
 
   console.log(renderTextReport(result));
 
