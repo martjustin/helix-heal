@@ -4,11 +4,15 @@ import { dirname, resolve } from "node:path";
 import {
   analyzeFailures,
   applyLiveValidationWithPage,
+  applyHealCache,
   generateDryRunPatches,
   loadConfig,
+  readHealCache,
   renderMarkdownReport,
   renderPatchSet,
   renderTextReport,
+  updateHealCacheFromResult,
+  writeHealCache,
   type AnalyzeResult,
   type HelixConfig
 } from "@helix-heal/core";
@@ -22,6 +26,7 @@ type CliOptions = {
   dryRun?: boolean;
   sourceRoot?: string;
   liveUrl?: string;
+  noCache?: boolean;
 };
 
 async function main(): Promise<void> {
@@ -86,6 +91,8 @@ async function analyzeFromOptions(options: CliOptions) {
   const cwd = process.cwd();
   const reportPath = resolve(cwd, options.report ?? "playwright-report.json");
   const config = await loadConfig(cwd);
+  const sourceRoot = resolve(cwd, options.sourceRoot ?? ".");
+  const cachePath = resolve(cwd, ".helix/heal-cache.json");
   const rawFailures = await ingestPlaywrightJsonReport(reportPath);
   const traceContext = options.trace
     ? await extractTraceContext(resolve(cwd, options.trace), {
@@ -99,8 +106,19 @@ async function analyzeFromOptions(options: CliOptions) {
   }));
   const result = analyzeFailures({ failures, config });
 
+  if (!options.noCache) {
+    const cache = await readHealCache(cachePath);
+    await applyHealCache(result, cache, sourceRoot, config);
+  }
+
   if (options.liveUrl) {
     await applyOptionalLiveValidation(result, config, options.liveUrl);
+  }
+
+  if (!options.noCache) {
+    const cache = await readHealCache(cachePath);
+    const updatedCache = await updateHealCacheFromResult(cache, result, sourceRoot);
+    await writeHealCache(cachePath, updatedCache);
   }
 
   return result;
@@ -156,6 +174,8 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === "--live-url" && next) {
       options.liveUrl = next;
       index += 1;
+    } else if (arg === "--no-cache") {
+      options.noCache = true;
     } else if (arg === "--dry-run") {
       options.dryRun = true;
     }
@@ -178,6 +198,7 @@ Options:
   --trace    Path to a Playwright trace zip or extracted trace directory
   --source-root  Directory used to resolve test file paths for patches
   --live-url  Optional URL for live Playwright validation
+  --no-cache  Disable .helix/heal-cache.json reads and writes
   --dry-run  Print a reviewable patch without applying it
 `);
 }

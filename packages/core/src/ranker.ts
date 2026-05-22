@@ -11,8 +11,9 @@ export function rankCandidates(
       );
       const preferredBoost = preferenceIndex >= 0 ? 0.12 - preferenceIndex * 0.02 : 0;
       const strategyBase = candidate.strategy === "role" ? 0.78 : 0.66;
+      const cacheBoost = candidate.source === "cache" ? 0.15 : 0;
       const validationBoost = validationConfidenceAdjustment(candidate);
-      const confidence = clamp(strategyBase + preferredBoost + validationBoost);
+      const confidence = clamp(strategyBase + preferredBoost + cacheBoost + validationBoost);
 
       return {
         ...candidate,
