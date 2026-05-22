@@ -11,6 +11,14 @@ inputs:
     description: Path to Playwright test results or trace artifacts.
     required: false
     default: test-results
+  trace:
+    description: Optional explicit path to a Playwright trace zip or extracted trace directory.
+    required: false
+    default: ""
+  source-root:
+    description: Directory used to resolve test source paths for dry-run patches.
+    required: false
+    default: "."
   min-confidence:
     description: Minimum confidence score to include in the PR comment.
     required: false
@@ -35,7 +43,9 @@ runs:
       shell: bash
       run: node "${{ github.action_path }}/packages/github-action/dist/index.js"
       env:
-        INPUT_PLAYWRIGHT-REPORT: ${{ inputs.playwright-report }}
-        INPUT_TEST-RESULTS: ${{ inputs.test-results }}
-        INPUT_MIN-CONFIDENCE: ${{ inputs.min-confidence }}
-        INPUT_GITHUB-TOKEN: ${{ inputs.github-token }}
+        HELIX_PLAYWRIGHT_REPORT: ${{ inputs.playwright-report }}
+        HELIX_TEST_RESULTS: ${{ inputs.test-results }}
+        HELIX_TRACE: ${{ inputs.trace }}
+        HELIX_SOURCE_ROOT: ${{ inputs.source-root }}
+        HELIX_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
+        HELIX_GITHUB_TOKEN: ${{ inputs.github-token }}

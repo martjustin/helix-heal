@@ -5,6 +5,9 @@ playwright-report/
 test-results/
 .helix/heal-cache.json
 .helix/*.md
+.helix/*.patch
+helix-heal-report.md
+helix-heal.patch
 .env
 .env.*
 !.env.example
