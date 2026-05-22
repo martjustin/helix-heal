@@ -1,0 +1,3 @@
+{"type":"before","callId":"call@7","startTime":10,"apiName":"locator.click","params":{"selector":"getByText(\"Sign in\")"},"pageId":"page@1","page":{"url":"http://localhost:3000/login"}}
+{"type":"after","callId":"call@7","endTime":30110,"error":{"message":"Timeout 30000ms exceeded"}}
+{"type":"frame-snapshot","snapshot":{"url":"http://localhost:3000/login","html":["<main><h1>Welcome back</h1><button data-testid=\"login-submit\" aria-label=\"Log in\">Log in</button></main>"]}}

@@ -22,4 +22,23 @@ describe("extractTraceContext", () => {
       selector: 'button[data-testid="login-submit"]'
     });
   });
+
+  it("decodes Playwright-style trace events and resource snapshots", async () => {
+    const tracePath = resolve(process.cwd(), "../../examples/basic-playwright/fixtures/real-trace");
+
+    const context = await extractTraceContext(tracePath, {
+      failedSelector: 'getByText("Sign in")'
+    });
+
+    expect(context.failedAction).toMatchObject({
+      callId: "call@7",
+      apiName: "locator.click",
+      selector: 'getByText("Sign in")',
+      error: "Timeout 30000ms exceeded"
+    });
+    expect(context.domSnapshots.some((snapshot) => snapshot.html?.includes("login-submit"))).toBe(
+      true
+    );
+    expect(context.pageUrl).toBe("http://localhost:3000/login");
+  });
 });

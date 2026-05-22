@@ -105,7 +105,7 @@ function countTestIdMatches(testId: string, failure: NormalizedFailure): number 
     return count + countRegex(html, new RegExp(`data-testid=["']${escapeRegExp(testId)}["']`, "g"));
   }, 0);
 
-  return Math.max(selectorMatches, domMatches);
+  return Math.max(selectorMatches > 0 ? 1 : 0, domMatches > 0 ? 1 : 0);
 }
 
 function countTextMatches(text: string, failure: NormalizedFailure): number {

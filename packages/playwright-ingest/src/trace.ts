@@ -1,41 +1,61 @@
 import { readdir, readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import AdmZip from "adm-zip";
 import type { AccessibilityNode, DomSnapshot, TraceAction, TraceContext } from "@helix-heal/core";
 
 type UnknownRecord = Record<string, unknown>;
 
-export async function extractTraceContext(tracePath: string): Promise<TraceContext> {
+export type TraceDecodeOptions = {
+  failedSelector?: string;
+};
+
+type TraceEntry = {
+  name: string;
+  content: string;
+};
+
+export async function extractTraceContext(
+  tracePath: string,
+  options: TraceDecodeOptions = {}
+): Promise<TraceContext> {
   const entries = tracePath.endsWith(".zip")
     ? readZipTraceEntries(tracePath)
     : await readDirectoryTraceEntries(tracePath);
 
-  return buildTraceContext(tracePath, entries);
+  return buildTraceContext(tracePath, entries, options);
 }
 
-function readZipTraceEntries(tracePath: string): string[] {
+function readZipTraceEntries(tracePath: string): TraceEntry[] {
   const zip = new AdmZip(tracePath);
 
   return zip
     .getEntries()
-    .filter((entry) => !entry.isDirectory && isTraceLikeFile(entry.entryName))
-    .map((entry) => entry.getData().toString("utf8"));
+    .filter((entry) => !entry.isDirectory && isTraceContextFile(entry.entryName))
+    .map((entry) => ({
+      name: entry.entryName,
+      content: entry.getData().toString("utf8")
+    }));
 }
 
-async function readDirectoryTraceEntries(tracePath: string): Promise<string[]> {
+async function readDirectoryTraceEntries(tracePath: string): Promise<TraceEntry[]> {
   const fileStat = await stat(tracePath);
   if (fileStat.isFile()) {
-    return isTraceLikeFile(tracePath) ? [await readFile(tracePath, "utf8")] : [];
+    return isTraceContextFile(tracePath)
+      ? [{ name: basename(tracePath), content: await readFile(tracePath, "utf8") }]
+      : [];
   }
 
   const files = await walk(tracePath);
-  const contents: string[] = [];
+  const entries: TraceEntry[] = [];
 
-  for (const file of files.filter(isTraceLikeFile)) {
-    contents.push(await readFile(file, "utf8"));
+  for (const file of files.filter(isTraceContextFile)) {
+    entries.push({
+      name: file,
+      content: await readFile(file, "utf8")
+    });
   }
 
-  return contents;
+  return entries;
 }
 
 async function walk(dir: string): Promise<string[]> {
@@ -54,7 +74,11 @@ async function walk(dir: string): Promise<string[]> {
   return files;
 }
 
-function buildTraceContext(tracePath: string, traceEntryContents: string[]): TraceContext {
+function buildTraceContext(
+  tracePath: string,
+  traceEntries: TraceEntry[],
+  options: TraceDecodeOptions
+): TraceContext {
   const context: TraceContext = {
     tracePath,
     actions: [],
@@ -62,8 +86,17 @@ function buildTraceContext(tracePath: string, traceEntryContents: string[]): Tra
     accessibilityNodes: []
   };
 
-  for (const content of traceEntryContents) {
-    for (const event of parseTraceEvents(content)) {
+  for (const entry of traceEntries) {
+    if (isHtmlLikeFile(entry.name)) {
+      context.domSnapshots.push({
+        source: entry.name,
+        html: entry.content,
+        text: htmlToText(entry.content)
+      });
+      continue;
+    }
+
+    for (const event of parseTraceEvents(entry.content)) {
       collectUrl(context, event);
       collectAction(context, event);
       collectDomSnapshot(context, event);
@@ -71,6 +104,7 @@ function buildTraceContext(tracePath: string, traceEntryContents: string[]): Tra
     }
   }
 
+  context.failedAction = selectFailedAction(context.actions, options.failedSelector);
   return context;
 }
 
@@ -93,7 +127,7 @@ function parseTraceEvents(content: string): UnknownRecord[] {
 }
 
 function collectUrl(context: TraceContext, event: UnknownRecord): void {
-  const url = firstString(event.url, nestedString(event, "page", "url"));
+  const url = firstString(event.url, nestedString(event, "page", "url"), nestedString(event, "params", "url"));
   if (url && !context.pageUrl) {
     context.pageUrl = url;
   }
@@ -104,18 +138,41 @@ function collectAction(context: TraceContext, event: UnknownRecord): void {
   const params = isRecord(event.params) ? event.params : undefined;
   const selector = firstString(params?.selector, event.selector);
   const url = firstString(event.url, params?.url);
+  const callId = firstString(event.callId);
+  const error = firstString(event.error, nestedString(event, "error", "message"));
 
-  if (!apiName && !selector) {
+  if (!apiName && !selector && !callId) {
     return;
   }
 
-  const action: TraceAction = { apiName, selector, url };
+  const existing = callId ? context.actions.find((action) => action.callId === callId) : undefined;
+  const action: TraceAction = {
+    ...existing,
+    callId: callId ?? existing?.callId,
+    apiName: apiName ?? existing?.apiName,
+    selector: selector ?? existing?.selector,
+    url: url ?? existing?.url,
+    startTime: numberValue(event.startTime) ?? existing?.startTime,
+    endTime: numberValue(event.endTime) ?? existing?.endTime,
+    error: error ?? existing?.error
+  };
+
+  if (existing) {
+    Object.assign(existing, action);
+    return;
+  }
+
   context.actions.push(action);
 }
 
 function collectDomSnapshot(context: TraceContext, event: UnknownRecord): void {
   const snapshot = isRecord(event.snapshot) ? event.snapshot : event;
-  const html = firstString(snapshot.html, snapshot.dom, snapshot.markup);
+  const html = firstString(
+    snapshot.html,
+    snapshot.dom,
+    snapshot.markup,
+    snapshotHtml(snapshot.html)
+  );
   const text = firstString(snapshot.text, snapshot.innerText);
   const url = firstString(snapshot.url, event.url);
 
@@ -124,7 +181,7 @@ function collectDomSnapshot(context: TraceContext, event: UnknownRecord): void {
   }
 
   const source = firstString(event.type, event.event, event.name) ?? "trace";
-  const domSnapshot: DomSnapshot = { source, html, text, url };
+  const domSnapshot: DomSnapshot = { source, html, text: text ?? htmlToText(html ?? ""), url };
   context.domSnapshots.push(domSnapshot);
 }
 
@@ -157,13 +214,18 @@ function flattenNodes(value: unknown): UnknownRecord[] {
   return [value, ...children];
 }
 
-function isTraceLikeFile(path: string): boolean {
+function isTraceContextFile(path: string): boolean {
   return (
     path.endsWith(".trace") ||
     path.endsWith(".jsonl") ||
     path.endsWith(".ndjson") ||
-    path.endsWith(".trace.json")
+    path.endsWith(".trace.json") ||
+    path.endsWith(".html")
   );
+}
+
+function isHtmlLikeFile(path: string): boolean {
+  return path.endsWith(".html");
 }
 
 function safeJsonParse(value: string): unknown {
@@ -185,4 +247,50 @@ function firstString(...values: unknown[]): string | undefined {
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function numberValue(value: unknown): number | undefined {
+  return typeof value === "number" ? value : undefined;
+}
+
+function selectFailedAction(
+  actions: TraceAction[],
+  failedSelector: string | undefined
+): TraceAction | undefined {
+  if (failedSelector) {
+    const normalizedFailedSelector = normalizeSelector(failedSelector);
+    const selectorMatch = actions.find((action) =>
+      action.selector ? normalizeSelector(action.selector).includes(normalizedFailedSelector) : false
+    );
+
+    if (selectorMatch) {
+      return selectorMatch;
+    }
+  }
+
+  return actions.find((action) => action.error) ?? actions.at(-1);
+}
+
+function normalizeSelector(value: string): string {
+  return value.replace(/^page\./, "").replace(/\s+/g, "");
+}
+
+function snapshotHtml(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(snapshotHtml).filter(Boolean).join("");
+  }
+
+  if (isRecord(value)) {
+    return Object.values(value).map(snapshotHtml).filter(Boolean).join("");
+  }
+
+  return undefined;
+}
+
+function htmlToText(html: string): string {
+  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }

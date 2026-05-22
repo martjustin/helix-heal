@@ -82,10 +82,13 @@ async function analyzeFromOptions(options: CliOptions) {
   const cwd = process.cwd();
   const reportPath = resolve(cwd, options.report ?? "playwright-report.json");
   const config = await loadConfig(cwd);
+  const rawFailures = await ingestPlaywrightJsonReport(reportPath);
   const traceContext = options.trace
-    ? await extractTraceContext(resolve(cwd, options.trace))
+    ? await extractTraceContext(resolve(cwd, options.trace), {
+        failedSelector: rawFailures[0]?.failedSelector
+      })
     : undefined;
-  const failures = (await ingestPlaywrightJsonReport(reportPath)).map((failure) => ({
+  const failures = rawFailures.map((failure) => ({
     ...failure,
     traceContext: traceContext ?? failure.traceContext,
     pageUrl: failure.pageUrl ?? traceContext?.pageUrl

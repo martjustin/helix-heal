@@ -50,14 +50,19 @@ export type AccessibilityNode = {
 };
 
 export type TraceAction = {
+  callId?: string;
   apiName?: string;
   selector?: string;
   url?: string;
+  startTime?: number;
+  endTime?: number;
+  error?: string;
 };
 
 export type TraceContext = {
   tracePath: string;
   pageUrl?: string;
+  failedAction?: TraceAction;
   actions: TraceAction[];
   domSnapshots: DomSnapshot[];
   accessibilityNodes: AccessibilityNode[];
