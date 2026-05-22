@@ -1,7 +1,14 @@
 #!/usr/bin/env node
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { analyzeFailures, loadConfig, renderMarkdownReport, renderTextReport } from "@helix-heal/core";
+import {
+  analyzeFailures,
+  generateDryRunPatches,
+  loadConfig,
+  renderMarkdownReport,
+  renderPatchSet,
+  renderTextReport
+} from "@helix-heal/core";
 import { extractTraceContext, ingestPlaywrightJsonReport } from "@helix-heal/playwright-ingest";
 
 type CliOptions = {
@@ -9,6 +16,8 @@ type CliOptions = {
   report?: string;
   output?: string;
   trace?: string;
+  dryRun?: boolean;
+  sourceRoot?: string;
 };
 
 async function main(): Promise<void> {
@@ -24,6 +33,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (options.command === "patch") {
+    await runPatch(options);
+    return;
+  }
+
   if (options.command !== "analyze") {
     throw new Error(`Unknown command: ${options.command}`);
   }
@@ -31,10 +45,42 @@ async function main(): Promise<void> {
   await runAnalyze(options);
 }
 
+async function runPatch(options: CliOptions): Promise<void> {
+  if (!options.dryRun) {
+    throw new Error("Patch currently supports --dry-run only.");
+  }
+
+  const cwd = process.cwd();
+  const outputPath = resolve(cwd, options.output ?? ".helix/helix-heal.patch");
+  const result = await analyzeFromOptions(options);
+  const changes = await generateDryRunPatches(
+    result,
+    resolve(cwd, options.sourceRoot ?? ".")
+  );
+  const patch = renderPatchSet(changes);
+
+  console.log(patch);
+
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, patch, "utf8");
+  console.log(`\nDry-run patch written to ${outputPath}`);
+}
+
 async function runAnalyze(options: CliOptions): Promise<void> {
   const cwd = process.cwd();
-  const reportPath = resolve(cwd, options.report ?? "playwright-report.json");
   const outputPath = resolve(cwd, options.output ?? ".helix/helix-heal-report.md");
+  const result = await analyzeFromOptions(options);
+
+  console.log(renderTextReport(result));
+
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, renderMarkdownReport(result), "utf8");
+  console.log(`\nMarkdown report written to ${outputPath}`);
+}
+
+async function analyzeFromOptions(options: CliOptions) {
+  const cwd = process.cwd();
+  const reportPath = resolve(cwd, options.report ?? "playwright-report.json");
   const config = await loadConfig(cwd);
   const traceContext = options.trace
     ? await extractTraceContext(resolve(cwd, options.trace))
@@ -44,13 +90,7 @@ async function runAnalyze(options: CliOptions): Promise<void> {
     traceContext: traceContext ?? failure.traceContext,
     pageUrl: failure.pageUrl ?? traceContext?.pageUrl
   }));
-  const result = analyzeFailures({ failures, config });
-
-  console.log(renderTextReport(result));
-
-  await mkdir(dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, renderMarkdownReport(result), "utf8");
-  console.log(`\nMarkdown report written to ${outputPath}`);
+  return analyzeFailures({ failures, config });
 }
 
 async function runDoctor(): Promise<void> {
@@ -78,6 +118,11 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === "--trace" && next) {
       options.trace = next;
       index += 1;
+    } else if (arg === "--source-root" && next) {
+      options.sourceRoot = next;
+      index += 1;
+    } else if (arg === "--dry-run") {
+      options.dryRun = true;
     }
   }
 
@@ -89,12 +134,15 @@ function printHelp(): void {
 
 Usage:
   helix-heal analyze --report playwright-report.json
+  helix-heal patch --dry-run --report playwright-report.json
   helix-heal doctor
 
 Options:
   --report   Path to Playwright JSON report
   --output   Path for Markdown report
   --trace    Path to a Playwright trace zip or extracted trace directory
+  --source-root  Directory used to resolve test file paths for patches
+  --dry-run  Print a reviewable patch without applying it
 `);
 }
 

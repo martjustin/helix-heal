@@ -5,6 +5,8 @@ export { generateCandidates } from "./candidates.js";
 export { rankCandidates } from "./ranker.js";
 export { renderMarkdownReport, renderTextReport } from "./reporter.js";
 export { validateCandidates } from "./validator.js";
+export { generateDryRunPatches, renderPatchSet } from "./patch.js";
+export type { PatchChange } from "./patch.js";
 export type {
   AnalyzeInput,
   AnalyzeResult,
