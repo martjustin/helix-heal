@@ -1,0 +1,9 @@
+{
+  "testIdAttribute": "data-testid",
+  "minSuggestionConfidence": 0.75,
+  "minAutoPatchConfidence": 0.9,
+  "allowLLM": false,
+  "preferredLocators": ["role", "label", "testId", "text"],
+  "excludePaths": ["node_modules", "dist", "build"]
+}
+

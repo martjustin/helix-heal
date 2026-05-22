@@ -1,0 +1,20 @@
+{
+  "name": "@helix-heal/playwright-ingest",
+  "version": "0.1.0",
+  "description": "Playwright report ingestion for Helix Heal.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@helix-heal/core": "0.1.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@helix-heal/github-action",
+  "version": "0.1.0",
+  "description": "GitHub Action wrapper for Helix Heal.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/github": "^9.1.1",
+    "@helix-heal/core": "0.1.0",
+    "@helix-heal/playwright-ingest": "0.1.0"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  }
+}

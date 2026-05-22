@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+.helix/heal-cache.json
+.helix/*.md
+.env
+.env.*
+!.env.example

@@ -1,0 +1,42 @@
+{
+  "suites": [
+    {
+      "title": "login.spec.ts",
+      "file": "tests/login.spec.ts",
+      "specs": [
+        {
+          "title": "user can sign in",
+          "file": "tests/login.spec.ts",
+          "line": 3,
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "status": "failed",
+                  "duration": 30000,
+                  "error": {
+                    "message": "TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByText(\"Sign in\")"
+                  },
+                  "errors": [
+                    {
+                      "message": "TimeoutError: locator.click: Timeout 30000ms exceeded. waiting for getByText(\"Sign in\")"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "ok": false
+        }
+      ]
+    }
+  ],
+  "errors": []
+}
