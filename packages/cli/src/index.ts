@@ -17,6 +17,7 @@ import {
   type HelixConfig
 } from "@helix-heal/core";
 import { extractTraceContext, ingestPlaywrightJsonReport } from "@helix-heal/playwright-ingest";
+import { renderDoctorReport, runDoctorChecks } from "./doctor.js";
 
 type CliOptions = {
   command: string;
@@ -144,11 +145,14 @@ async function applyOptionalLiveValidation(
 }
 
 async function runDoctor(): Promise<void> {
-  const config = await loadConfig(process.cwd());
-  console.log("Helix Heal doctor");
-  console.log(`- testIdAttribute: ${config.testIdAttribute}`);
-  console.log(`- minSuggestionConfidence: ${config.minSuggestionConfidence}`);
-  console.log(`- allowLLM: ${config.allowLLM}`);
+  const options = parseArgs(process.argv.slice(2));
+  const checks = await runDoctorChecks({
+    cwd: process.cwd(),
+    report: options.report,
+    trace: options.trace,
+    sourceRoot: options.sourceRoot
+  });
+  console.log(renderDoctorReport(checks));
 }
 
 function parseArgs(args: string[]): CliOptions {
