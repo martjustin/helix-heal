@@ -32,6 +32,35 @@ export type NormalizedFailure = {
     contentType?: string;
     path?: string;
   }>;
+  traceContext?: TraceContext;
+};
+
+export type DomSnapshot = {
+  source: string;
+  html?: string;
+  text?: string;
+  url?: string;
+};
+
+export type AccessibilityNode = {
+  role?: string;
+  name?: string;
+  text?: string;
+  selector?: string;
+};
+
+export type TraceAction = {
+  apiName?: string;
+  selector?: string;
+  url?: string;
+};
+
+export type TraceContext = {
+  tracePath: string;
+  pageUrl?: string;
+  actions: TraceAction[];
+  domSnapshots: DomSnapshot[];
+  accessibilityNodes: AccessibilityNode[];
 };
 
 export type CandidateLocator = {

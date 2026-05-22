@@ -1,0 +1,3 @@
+{"type":"before","apiName":"locator.click","params":{"selector":"getByText(\"Sign in\")"},"page":{"url":"http://localhost:3000/login"}}
+{"type":"snapshot","snapshot":{"url":"http://localhost:3000/login","html":"<main><h1>Welcome back</h1><button aria-label=\"Log in\" data-testid=\"login-submit\">Log in</button></main>","text":"Welcome back Log in"}}
+{"type":"accessibility","accessibilityTree":{"role":"main","name":"","children":[{"role":"heading","name":"Welcome back"},{"role":"button","name":"Log in","selector":"button[data-testid=\"login-submit\"]"}]}}

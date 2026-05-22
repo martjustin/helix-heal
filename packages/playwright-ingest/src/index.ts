@@ -1,5 +1,7 @@
 import { readFile } from "node:fs/promises";
 import type { NormalizedFailure, PlaywrightAction } from "@helix-heal/core";
+import { extractTraceContext } from "./trace.js";
+export { extractTraceContext } from "./trace.js";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -11,6 +13,32 @@ export async function ingestPlaywrightJsonReport(reportPath: string): Promise<No
   visitSuiteArray(report.suites, failures);
 
   return failures;
+}
+
+export async function enrichFailuresWithTraceContext(
+  failures: NormalizedFailure[]
+): Promise<NormalizedFailure[]> {
+  const enriched: NormalizedFailure[] = [];
+
+  for (const failure of failures) {
+    if (!failure.tracePath) {
+      enriched.push(failure);
+      continue;
+    }
+
+    try {
+      const traceContext = await extractTraceContext(failure.tracePath);
+      enriched.push({
+        ...failure,
+        pageUrl: failure.pageUrl ?? traceContext.pageUrl,
+        traceContext
+      });
+    } catch {
+      enriched.push(failure);
+    }
+  }
+
+  return enriched;
 }
 
 function visitSuiteArray(

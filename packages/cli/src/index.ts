@@ -2,12 +2,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { analyzeFailures, loadConfig, renderMarkdownReport, renderTextReport } from "@helix-heal/core";
-import { ingestPlaywrightJsonReport } from "@helix-heal/playwright-ingest";
+import { extractTraceContext, ingestPlaywrightJsonReport } from "@helix-heal/playwright-ingest";
 
 type CliOptions = {
   command: string;
   report?: string;
   output?: string;
+  trace?: string;
 };
 
 async function main(): Promise<void> {
@@ -36,7 +37,17 @@ async function runAnalyze(options: CliOptions): Promise<void> {
   const outputPath = resolve(cwd, options.output ?? ".helix/helix-heal-report.md");
   const config = await loadConfig(cwd);
   const failures = await ingestPlaywrightJsonReport(reportPath);
+  const traceContext = options.trace
+    ? await extractTraceContext(resolve(cwd, options.trace))
+    : undefined;
   const result = analyzeFailures({ failures, config });
+
+  if (traceContext) {
+    for (const suggestion of result.suggestions) {
+      suggestion.failure.traceContext = traceContext;
+      suggestion.failure.pageUrl ??= traceContext.pageUrl;
+    }
+  }
 
   console.log(renderTextReport(result));
 
@@ -67,6 +78,9 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === "--output" && next) {
       options.output = next;
       index += 1;
+    } else if (arg === "--trace" && next) {
+      options.trace = next;
+      index += 1;
     }
   }
 
@@ -83,6 +97,7 @@ Usage:
 Options:
   --report   Path to Playwright JSON report
   --output   Path for Markdown report
+  --trace    Path to a Playwright trace zip or extracted trace directory
 `);
 }
 
@@ -90,4 +105,3 @@ main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
 });
-

@@ -7,12 +7,15 @@ export { renderMarkdownReport, renderTextReport } from "./reporter.js";
 export type {
   AnalyzeInput,
   AnalyzeResult,
+  AccessibilityNode,
   CandidateLocator,
+  DomSnapshot,
   FailureCategory,
   HealingSuggestion,
   HelixConfig,
   NormalizedFailure,
   PlaywrightAction,
-  RankedLocator
+  RankedLocator,
+  TraceAction,
+  TraceContext
 } from "./types.js";
-

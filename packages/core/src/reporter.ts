@@ -33,6 +33,16 @@ export function renderMarkdownReport(result: AnalyzeResult): string {
       lines.push(`- Failed selector: \`${suggestion.failure.failedSelector}\``);
     }
 
+    if (suggestion.failure.pageUrl) {
+      lines.push(`- Page URL: \`${suggestion.failure.pageUrl}\``);
+    }
+
+    if (suggestion.failure.traceContext) {
+      lines.push(
+        `- Trace context: ${suggestion.failure.traceContext.domSnapshots.length} DOM snapshot(s), ${suggestion.failure.traceContext.accessibilityNodes.length} accessibility node(s)`
+      );
+    }
+
     if (suggestion.recommended) {
       lines.push(`- Suggested selector: \`${suggestion.recommended.locator}\``);
       lines.push(`- Confidence: \`${suggestion.recommended.confidence.toFixed(2)}\``);
@@ -62,7 +72,16 @@ function renderSuggestion(suggestion: HealingSuggestion, index: number): string 
     `   Failed: ${suggestion.failure.failedSelector ?? "unknown selector"}`,
     `   Suggest: ${recommended.locator}`,
     `   Confidence: ${recommended.confidence.toFixed(2)}`,
+    renderTraceSummary(suggestion),
     `   Reason: ${recommended.reasons.join("; ")}`
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 }
 
+function renderTraceSummary(suggestion: HealingSuggestion): string | undefined {
+  const context = suggestion.failure.traceContext;
+  if (!context) {
+    return undefined;
+  }
+
+  return `   Trace: ${context.domSnapshots.length} DOM snapshot(s), ${context.accessibilityNodes.length} accessibility node(s)`;
+}

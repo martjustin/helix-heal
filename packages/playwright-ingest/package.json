@@ -12,7 +12,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@helix-heal/core": "0.1.0"
+    "@helix-heal/core": "0.1.0",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.5.17"
   },
   "devDependencies": {
     "rimraf": "^5.0.5"
