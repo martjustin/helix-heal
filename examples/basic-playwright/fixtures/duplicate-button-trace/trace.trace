@@ -1,0 +1,3 @@
+{"type":"before","callId":"call@21","startTime":40,"apiName":"locator.click","params":{"selector":"getByText(\"Save\")"},"page":{"url":"http://localhost:3000/settings"}}
+{"type":"frame-snapshot","snapshot":{"url":"http://localhost:3000/settings","html":"<main><button>Save</button><section><button>Save</button></section></main>"}}
+{"type":"after","callId":"call@21","endTime":30040,"error":{"message":"strict mode violation: getByText(\"Save\") resolved to 2 elements"}}

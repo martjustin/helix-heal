@@ -11,44 +11,109 @@ export type PatchChange = {
   diagnostics: string[];
 };
 
+export type PatchDiagnostic = {
+  testFile: string;
+  testTitle: string;
+  severity: "info" | "warn";
+  message: string;
+};
+
+export type PatchReport = {
+  changes: PatchChange[];
+  diagnostics: PatchDiagnostic[];
+};
+
 export async function generateDryRunPatches(
   result: AnalyzeResult,
   sourceRoot: string
 ): Promise<PatchChange[]> {
+  return (await generateDryRunPatchReport(result, sourceRoot)).changes;
+}
+
+export async function generateDryRunPatchReport(
+  result: AnalyzeResult,
+  sourceRoot: string
+): Promise<PatchReport> {
   const changes: PatchChange[] = [];
+  const diagnostics: PatchDiagnostic[] = [];
 
   for (const suggestion of result.suggestions) {
-    const change = await generatePatchForSuggestion(suggestion, sourceRoot);
-    if (change) {
-      changes.push(change);
+    const patchResult = await generatePatchForSuggestion(suggestion, sourceRoot);
+    if ("change" in patchResult) {
+      changes.push(patchResult.change);
+    } else {
+      diagnostics.push(patchResult.diagnostic);
     }
   }
 
-  return changes;
+  return { changes, diagnostics };
 }
 
-export function renderPatchSet(changes: PatchChange[]): string {
-  if (changes.length === 0) {
-    return "No safe dry-run patches available.";
+export function renderPatchSet(changesOrReport: PatchChange[] | PatchReport): string {
+  const report = Array.isArray(changesOrReport)
+    ? { changes: changesOrReport, diagnostics: [] }
+    : changesOrReport;
+  const sections: string[] = [];
+
+  if (report.changes.length === 0) {
+    sections.push("No safe dry-run patches available.");
+  } else {
+    sections.push(report.changes.map((change) => change.diff).join("\n"));
   }
 
-  return changes.map((change) => change.diff).join("\n");
+  if (report.diagnostics.length > 0) {
+    sections.push(
+      [
+        "Patch diagnostics:",
+        ...report.diagnostics.map(
+          (diagnostic) =>
+            `- [${diagnostic.severity}] ${diagnostic.testFile} (${diagnostic.testTitle}): ${diagnostic.message}`
+        )
+      ].join("\n")
+    );
+  }
+
+  return sections.join("\n\n");
 }
 
 async function generatePatchForSuggestion(
   suggestion: HealingSuggestion,
   sourceRoot: string
-): Promise<PatchChange | undefined> {
+): Promise<{ change: PatchChange } | { diagnostic: PatchDiagnostic }> {
   if (!suggestion.recommended || !suggestion.failure.failedSelector) {
-    return undefined;
+    return {
+      diagnostic: createDiagnostic(
+        suggestion,
+        "warn",
+        "No recommended locator or failed selector was available for patch generation."
+      )
+    };
   }
 
   if (suggestion.recommended.validation?.status === "failed") {
-    return undefined;
+    return {
+      diagnostic: createDiagnostic(
+        suggestion,
+        "warn",
+        `Recommended locator failed validation: ${suggestion.recommended.validation.reasons.join("; ")}`
+      )
+    };
   }
 
   const filePath = resolve(sourceRoot, suggestion.failure.testFile);
-  const source = await readFile(filePath, "utf8");
+  let source: string;
+  try {
+    source = await readFile(filePath, "utf8");
+  } catch (error) {
+    return {
+      diagnostic: createDiagnostic(
+        suggestion,
+        "warn",
+        `Could not read source file ${filePath}: ${error instanceof Error ? error.message : String(error)}`
+      )
+    };
+  }
+
   const replacementPlan = findAstReplacementPlan(
     source,
     suggestion.failure.failedSelector,
@@ -56,17 +121,25 @@ async function generatePatchForSuggestion(
   );
 
   if (!replacementPlan) {
-    return undefined;
+    return {
+      diagnostic: createDiagnostic(
+        suggestion,
+        "warn",
+        `Could not locate exactly one AST locator call matching ${suggestion.failure.failedSelector}. The source may be ambiguous or already changed.`
+      )
+    };
   }
 
   const nextSource = replaceOnce(source, replacementPlan.search, replacementPlan.replacement);
 
   return {
-    filePath,
-    originalLocator: replacementPlan.search,
-    replacementLocator: replacementPlan.replacement,
-    diff: renderUnifiedDiff(filePath, source, nextSource),
-    diagnostics: replacementPlan.diagnostics
+    change: {
+      filePath,
+      originalLocator: replacementPlan.search,
+      replacementLocator: replacementPlan.replacement,
+      diff: renderUnifiedDiff(filePath, source, nextSource),
+      diagnostics: replacementPlan.diagnostics
+    }
   };
 }
 
@@ -177,4 +250,17 @@ function isPlaywrightLocatorCall(node: ts.CallExpression): boolean {
 
 function normalizeSource(value: string): string {
   return value.replace(/\s+/g, "");
+}
+
+function createDiagnostic(
+  suggestion: HealingSuggestion,
+  severity: PatchDiagnostic["severity"],
+  message: string
+): PatchDiagnostic {
+  return {
+    testFile: suggestion.failure.testFile,
+    testTitle: suggestion.failure.testTitle,
+    severity,
+    message
+  };
 }

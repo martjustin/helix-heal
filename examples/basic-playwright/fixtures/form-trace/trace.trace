@@ -1,0 +1,4 @@
+{"type":"before","callId":"call@11","startTime":20,"apiName":"locator.fill","params":{"selector":"getByLabel(\"Email\")","value":"jay@example.com"},"page":{"url":"http://localhost:3000/signup"}}
+{"type":"frame-snapshot","snapshot":{"url":"http://localhost:3000/signup","html":"<form><label for=\"work-email\">Work email</label><input id=\"work-email\" name=\"email\" placeholder=\"you@example.com\" /></form>"}}
+{"type":"accessibility","accessibilityTree":{"role":"form","name":"Signup","children":[{"role":"textbox","name":"Work email","selector":"input[name=\"email\"]"}]}}
+{"type":"after","callId":"call@11","endTime":30020,"error":{"message":"Timeout 30000ms exceeded"}}

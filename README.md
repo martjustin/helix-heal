@@ -26,6 +26,76 @@ examples/
 docs/                  Product and implementation docs
 ```
 
+## Launch Flow: Fail, Heal, Patch
+
+This is the core MVP workflow: configure Playwright, run a failing test, ask Helix for a healing suggestion, then generate a reviewable patch.
+
+### 1. Install
+
+```bash
+npm install
+npm run build
+```
+
+### 2. Configure Playwright
+
+Use a JSON report and keep traces on failure:
+
+```ts
+import { defineConfig } from "@playwright/test";
+
+export default defineConfig({
+  reporter: [
+    ["list"],
+    ["json", { outputFile: "playwright-report.json" }],
+    ["html", { outputFolder: "playwright-report" }]
+  ],
+  use: {
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure"
+  }
+});
+```
+
+### 3. Fail a Test
+
+Run your Playwright suite and keep the failed JSON report plus trace artifacts:
+
+```bash
+npx playwright test
+```
+
+### 4. Heal the Selector
+
+```bash
+node ./packages/cli/dist/index.js analyze \
+  --report ./examples/basic-playwright/fixtures/playwright-report.json \
+  --trace ./examples/basic-playwright/fixtures/real-trace \
+  --source-root ./examples/basic-playwright
+```
+
+Helix will classify selector failures, inspect trace DOM evidence, rank candidate locators, validate them, and write `.helix/helix-heal-report.md`.
+
+### 5. Generate a Reviewable Patch
+
+```bash
+node ./packages/cli/dist/index.js patch --dry-run \
+  --report ./examples/basic-playwright/fixtures/playwright-report.json \
+  --trace ./examples/basic-playwright/fixtures/real-trace \
+  --source-root ./examples/basic-playwright
+```
+
+The patch is printed and written to `.helix/helix-heal.patch`. Helix does not apply source changes by default.
+
+### 6. Check Setup
+
+```bash
+node ./packages/cli/dist/index.js doctor \
+  --report ./examples/basic-playwright/fixtures/playwright-report.json \
+  --trace ./examples/basic-playwright/fixtures/real-trace \
+  --source-root ./examples/basic-playwright
+```
+
 ## Quick Start
 
 ```bash
@@ -34,7 +104,10 @@ npm run build
 npm run --workspace @helix-heal/cli helix-heal -- analyze --report examples/basic-playwright/fixtures/playwright-report.json
 ```
 
+## GitHub Action
+
+See [docs/github-action.md](./docs/github-action.md) for PR comment and artifact upload setup.
+
 ## Product Direction
 
 See [HELIX_HEAL_PRD.md](./HELIX_HEAL_PRD.md) for the product scope, architecture, success metrics, and 90-day build plan.
-

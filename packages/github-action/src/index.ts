@@ -1,11 +1,12 @@
 import { stat, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import artifact from "@actions/artifact";
 import {
   analyzeFailures,
   defaultConfig,
-  generateDryRunPatches,
+  generateDryRunPatchReport,
   renderMarkdownReport,
   renderPatchSet
 } from "@helix-heal/core";
@@ -37,12 +38,19 @@ async function run(): Promise<void> {
   });
 
   const body = renderMarkdownReport(result);
-  const patch = renderPatchSet(await generateDryRunPatches(result, resolve(process.cwd(), sourceRoot)));
+  const patchReport = await generateDryRunPatchReport(result, resolve(process.cwd(), sourceRoot));
+  const patch = renderPatchSet(patchReport);
   const commentBody = buildGitHubComment(body, patch);
   const reportOutput = resolve(process.cwd(), "helix-heal-report.md");
+  const patchOutput = resolve(process.cwd(), "helix-heal.patch");
   await writeFile(reportOutput, body, "utf8");
+  await writeFile(patchOutput, patch, "utf8");
   core.setOutput("report-path", reportOutput);
+  core.setOutput("patch-path", patchOutput);
   core.setOutput("suggestion-count", String(result.suggestions.length));
+  core.setOutput("patch-count", String(patchReport.changes.length));
+
+  await uploadArtifacts([reportOutput, patchOutput]);
 
   if (token && github.context.payload.pull_request) {
     const octokit = github.getOctokit(token);
@@ -90,6 +98,15 @@ async function exists(path: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+async function uploadArtifacts(files: string[]): Promise<void> {
+  try {
+    await artifact.uploadArtifact("helix-heal-report", files, dirname(files[0]));
+    core.setOutput("artifact-name", "helix-heal-report");
+  } catch (error) {
+    core.warning(`Artifact upload skipped: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 

@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@actions/artifact": "^6.2.1",
     "@actions/core": "^3.0.1",
     "@actions/github": "^9.1.1",
     "@helix-heal/core": "0.1.0",

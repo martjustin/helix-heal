@@ -5,7 +5,7 @@ import {
   analyzeFailures,
   applyLiveValidationWithPage,
   applyHealCache,
-  generateDryRunPatches,
+  generateDryRunPatchReport,
   loadConfig,
   readHealCache,
   renderMarkdownReport,
@@ -63,11 +63,11 @@ async function runPatch(options: CliOptions): Promise<void> {
   const cwd = process.cwd();
   const outputPath = resolve(cwd, options.output ?? ".helix/helix-heal.patch");
   const result = await analyzeFromOptions(options);
-  const changes = await generateDryRunPatches(
+  const patchReport = await generateDryRunPatchReport(
     result,
     resolve(cwd, options.sourceRoot ?? ".")
   );
-  const patch = renderPatchSet(changes);
+  const patch = renderPatchSet(patchReport);
 
   console.log(patch);
 

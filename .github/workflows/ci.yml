@@ -20,3 +20,27 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  live-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Run live validation smoke
+        run: |
+          LIVE_URL="file://${PWD}/examples/basic-playwright/live/login.html"
+          node ./packages/cli/dist/index.js analyze \
+            --report ./examples/basic-playwright/fixtures/playwright-report.json \
+            --trace ./examples/basic-playwright/fixtures/real-trace \
+            --source-root ./examples/basic-playwright \
+            --live-url "$LIVE_URL" \
+            --output ./.helix/ci-live-validation-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: helix-live-validation-report
+          path: ./.helix/ci-live-validation-report.md

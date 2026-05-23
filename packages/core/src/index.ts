@@ -5,7 +5,7 @@ export { generateCandidates } from "./candidates.js";
 export { rankCandidates } from "./ranker.js";
 export { renderMarkdownReport, renderTextReport } from "./reporter.js";
 export { validateCandidates } from "./validator.js";
-export { generateDryRunPatches, renderPatchSet } from "./patch.js";
+export { generateDryRunPatchReport, generateDryRunPatches, renderPatchSet } from "./patch.js";
 export { applyLiveValidationWithPage, validateCandidateWithPage } from "./live-validator.js";
 export {
   applyHealCache,
@@ -13,7 +13,7 @@ export {
   updateHealCacheFromResult,
   writeHealCache
 } from "./cache.js";
-export type { PatchChange } from "./patch.js";
+export type { PatchChange, PatchDiagnostic, PatchReport } from "./patch.js";
 export type { LiveValidationPage } from "./live-validator.js";
 export type { HealCache, HealCacheEntry } from "./cache.js";
 export type {

@@ -2,7 +2,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { analyzeFailures } from "./analyze.js";
 import { defaultConfig } from "./config.js";
-import { generateDryRunPatches, renderPatchSet } from "./patch.js";
+import { generateDryRunPatchReport, generateDryRunPatches, renderPatchSet } from "./patch.js";
 
 describe("generateDryRunPatches", () => {
   it("creates a reviewable diff for a validated locator replacement", async () => {
@@ -77,11 +77,13 @@ describe("generateDryRunPatches", () => {
       ]
     });
 
-    const changes = await generateDryRunPatches(
+    const report = await generateDryRunPatchReport(
       result,
       resolve(process.cwd(), "../../examples/basic-playwright")
     );
 
-    expect(changes).toHaveLength(0);
+    expect(report.changes).toHaveLength(0);
+    expect(report.diagnostics[0]?.message).toContain("Could not locate exactly one AST locator call");
+    expect(renderPatchSet(report)).toContain("Patch diagnostics:");
   });
 });

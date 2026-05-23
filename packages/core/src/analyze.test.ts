@@ -61,6 +61,9 @@ describe("analyzeFailures", () => {
     expect(result.suggestions[0]?.candidates.map((candidate) => candidate.locator)).toContain(
       'page.getByTestId("login-submit")'
     );
+    expect(result.suggestions[0]?.candidates.map((candidate) => candidate.locator)).not.toContain(
+      'page.getByRole("heading", { name: "Welcome back" })'
+    );
     expect(result.suggestions[0]?.recommended?.validation).toMatchObject({
       status: "passed",
       matchCount: 1

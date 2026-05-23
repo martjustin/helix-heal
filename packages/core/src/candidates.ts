@@ -80,7 +80,7 @@ function generateDomCandidates(
 
   return snapshots.flatMap((snapshot) =>
     parseElements(snapshot.html ?? "")
-      .flatMap((element) => elementToCandidates(element, config))
+      .flatMap((element) => elementToCandidates(element, config, failure.action))
   );
 }
 
@@ -90,11 +90,16 @@ type ParsedElement = {
   text: string;
 };
 
-function elementToCandidates(element: ParsedElement, config: HelixConfig): CandidateLocator[] {
+function elementToCandidates(
+  element: ParsedElement,
+  config: HelixConfig,
+  action: NormalizedFailure["action"]
+): CandidateLocator[] {
   const candidates: CandidateLocator[] = [];
   const testId = element.attrs[config.testIdAttribute];
   const role = element.attrs.role ?? roleFromTag(element.tag, element.attrs);
   const name = element.attrs["aria-label"] ?? element.text;
+  const actionCompatible = isActionCompatible(role, action);
 
   if (testId) {
     candidates.push({
@@ -105,7 +110,7 @@ function elementToCandidates(element: ParsedElement, config: HelixConfig): Candi
     });
   }
 
-  if (role && name) {
+  if (role && name && actionCompatible) {
     candidates.push({
       locator: `page.getByRole(${JSON.stringify(role)}, { name: ${JSON.stringify(name)} })`,
       strategy: "role",
@@ -123,7 +128,7 @@ function elementToCandidates(element: ParsedElement, config: HelixConfig): Candi
     });
   }
 
-  if (element.text && element.tag !== "script" && element.tag !== "style") {
+  if (element.text && element.tag !== "script" && element.tag !== "style" && actionCompatible) {
     candidates.push({
       locator: `page.getByText(${JSON.stringify(element.text)})`,
       strategy: "text",
