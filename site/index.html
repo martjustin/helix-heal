@@ -339,8 +339,8 @@
               </article>
             </div>
             <pre><code>npx playwright test
-npm exec --workspace helix-heal -- helix-heal analyze --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
-npm exec --workspace helix-heal -- helix-heal patch --dry-run --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
+npx helix-heal analyze --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
+npx helix-heal patch --dry-run --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
 npx playwright test</code></pre>
           </section>
 
@@ -389,21 +389,16 @@ npx playwright test</code></pre>
               <p class="eyebrow">Install Flow</p>
               <h2 id="install-title">Run this after a failed Playwright job</h2>
               <p>
-                Helix stays easy to evaluate from source today: no hosted account, no vendor lock-in,
+                Helix stays easy to evaluate from npm: no hosted account, no vendor lock-in,
                 and no framework migration before the first repair suggestion.
               </p>
             </div>
-            <pre><code>git clone https://github.com/martjustin/helix-heal.git
-cd helix-heal
-npm install
-npm run build
-
-npm exec --workspace helix-heal -- helix-heal analyze \
+            <pre><code>npx helix-heal analyze \
   --report playwright-report.json \
   --trace test-results \
   --source-root .
 
-npm exec --workspace helix-heal -- helix-heal patch --dry-run \
+npx helix-heal patch --dry-run \
   --report playwright-report.json \
   --trace test-results \
   --source-root .</code></pre>

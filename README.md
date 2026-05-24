@@ -32,19 +32,8 @@ This is the core MVP workflow from the public site: a failed Playwright run beco
 
 ### 1. Install
 
-After npm publishing:
-
 ```bash
 npx helix-heal --help
-```
-
-From source today:
-
-```bash
-git clone https://github.com/martjustin/helix-heal.git
-cd helix-heal
-npm install
-npm run build
 ```
 
 ### 2. Configure Playwright
@@ -78,7 +67,7 @@ npx playwright test
 ### 4. Heal the Selector
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal analyze \
+npx helix-heal analyze \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -89,7 +78,7 @@ Helix will classify selector failures, inspect trace DOM evidence, rank candidat
 ### 5. Generate a Reviewable Patch
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal patch --dry-run \
+npx helix-heal patch --dry-run \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -110,7 +99,7 @@ See [docs/failing-fixture-walkthrough.md](./docs/failing-fixture-walkthrough.md)
 ### 7. Check Setup
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal doctor \
+npx helix-heal doctor \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -119,7 +108,7 @@ npm exec --workspace helix-heal -- helix-heal doctor \
 ### 8. Share the Static Dashboard
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal dashboard \
+npx helix-heal dashboard \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -146,9 +135,10 @@ The paid tiers are product direction, not a claim that hosted services are alrea
 ## Quick Start
 
 ```bash
-npm install
-npm run build
-npm run --workspace helix-heal helix-heal -- analyze --report examples/basic-playwright/fixtures/playwright-report.json
+npx helix-heal analyze \
+  --report examples/basic-playwright/fixtures/playwright-report.json \
+  --trace examples/basic-playwright/fixtures/real-trace \
+  --source-root examples/basic-playwright
 ```
 
 ## GitHub Action

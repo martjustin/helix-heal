@@ -27,7 +27,7 @@ Playwright writes a JSON report and trace evidence for Helix to inspect.
 ## 2. Analyze
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal analyze \
+npx helix-heal analyze \
   --report examples/basic-playwright/fixtures/playwright-report.json \
   --trace examples/basic-playwright/fixtures/real-trace \
   --source-root examples/basic-playwright
@@ -38,7 +38,7 @@ Helix maps the failed test, source path, failed locator, and trace DOM evidence.
 ## 3. Patch
 
 ```bash
-npm exec --workspace helix-heal -- helix-heal patch --dry-run \
+npx helix-heal patch --dry-run \
   --report examples/basic-playwright/fixtures/playwright-report.json \
   --trace examples/basic-playwright/fixtures/real-trace \
   --source-root examples/basic-playwright
