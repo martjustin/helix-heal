@@ -7,6 +7,8 @@ import {
   analyzeFailures,
   defaultConfig,
   generateDryRunPatchReport,
+  readHealCache,
+  renderDashboardHtml,
   renderMarkdownReport,
   renderPatchSet
 } from "@helix-heal/core";
@@ -40,17 +42,22 @@ async function run(): Promise<void> {
   const body = renderMarkdownReport(result);
   const patchReport = await generateDryRunPatchReport(result, resolve(process.cwd(), sourceRoot));
   const patch = renderPatchSet(patchReport);
+  const cache = await readHealCache(resolve(process.cwd(), ".helix/heal-cache.json"));
+  const dashboard = renderDashboardHtml(result, cache);
   const commentBody = buildGitHubComment(body, patch);
   const reportOutput = resolve(process.cwd(), "helix-heal-report.md");
   const patchOutput = resolve(process.cwd(), "helix-heal.patch");
+  const dashboardOutput = resolve(process.cwd(), "helix-heal-dashboard.html");
   await writeFile(reportOutput, body, "utf8");
   await writeFile(patchOutput, patch, "utf8");
+  await writeFile(dashboardOutput, dashboard, "utf8");
   core.setOutput("report-path", reportOutput);
   core.setOutput("patch-path", patchOutput);
+  core.setOutput("dashboard-path", dashboardOutput);
   core.setOutput("suggestion-count", String(result.suggestions.length));
   core.setOutput("patch-count", String(patchReport.changes.length));
 
-  await uploadArtifacts([reportOutput, patchOutput]);
+  await uploadArtifacts([reportOutput, patchOutput, dashboardOutput]);
 
   if (token && github.context.payload.pull_request) {
     const octokit = github.getOctokit(token);

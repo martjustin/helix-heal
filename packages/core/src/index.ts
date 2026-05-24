@@ -13,6 +13,7 @@ export {
   updateHealCacheFromResult,
   writeHealCache
 } from "./cache.js";
+export { renderDashboardHtml } from "./dashboard.js";
 export type { PatchChange, PatchDiagnostic, PatchReport } from "./patch.js";
 export type { LiveValidationPage } from "./live-validator.js";
 export type { HealCache, HealCacheEntry } from "./cache.js";

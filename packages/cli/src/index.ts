@@ -8,6 +8,7 @@ import {
   generateDryRunPatchReport,
   loadConfig,
   readHealCache,
+  renderDashboardHtml,
   renderMarkdownReport,
   renderPatchSet,
   renderTextReport,
@@ -48,11 +49,28 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (options.command === "dashboard") {
+    await runDashboard(options);
+    return;
+  }
+
   if (options.command !== "analyze") {
     throw new Error(`Unknown command: ${options.command}`);
   }
 
   await runAnalyze(options);
+}
+
+async function runDashboard(options: CliOptions): Promise<void> {
+  const cwd = process.cwd();
+  const outputPath = resolve(cwd, options.output ?? ".helix/helix-dashboard.html");
+  const result = await analyzeFromOptions(options);
+  const cache = await readHealCache(resolve(cwd, ".helix/heal-cache.json"));
+  const html = renderDashboardHtml(result, cache);
+
+  await mkdir(dirname(outputPath), { recursive: true });
+  await writeFile(outputPath, html, "utf8");
+  console.log(`Dashboard written to ${outputPath}`);
 }
 
 async function runPatch(options: CliOptions): Promise<void> {
@@ -194,6 +212,7 @@ function printHelp(): void {
 Usage:
   helix-heal analyze --report playwright-report.json
   helix-heal patch --dry-run --report playwright-report.json
+  helix-heal dashboard --report playwright-report.json
   helix-heal doctor
 
 Options:

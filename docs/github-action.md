@@ -26,16 +26,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --reporter=json
+      - name: Run Playwright
+        id: playwright
+        run: npx playwright test --reporter=json
         continue-on-error: true
       - uses: martjustin/helix-heal@main
-        if: always()
+        if: steps.playwright.outcome == 'failure'
         with:
           playwright-report: playwright-report.json
           trace: test-results
           source-root: .
           min-confidence: "0.75"
+      - name: Fail if Playwright failed
+        if: steps.playwright.outcome == 'failure'
+        run: exit 1
 ```
+
+The important detail is the `continue-on-error: true` Playwright step followed by the Helix step. That lets Helix inspect the failed run before the job is marked failed.
 
 ## Outputs
 
@@ -53,5 +60,6 @@ The Action uploads:
 
 - `helix-heal-report.md`
 - `helix-heal.patch`
+- `helix-heal-dashboard.html`
 
 If GitHub artifact upload is unavailable, the Action logs a warning and continues.

@@ -68,7 +68,7 @@ npx playwright test
 ### 4. Heal the Selector
 
 ```bash
-node ./packages/cli/dist/index.js analyze \
+npx helix-heal analyze \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -79,7 +79,7 @@ Helix will classify selector failures, inspect trace DOM evidence, rank candidat
 ### 5. Generate a Reviewable Patch
 
 ```bash
-node ./packages/cli/dist/index.js patch --dry-run \
+npx helix-heal patch --dry-run \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -90,23 +90,38 @@ The patch is printed and written to `.helix/helix-heal.patch`. Helix does not ap
 ### 6. Check Setup
 
 ```bash
-node ./packages/cli/dist/index.js doctor \
+npx helix-heal doctor \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
 ```
+
+### 7. Share the Static Dashboard
+
+```bash
+npx helix-heal dashboard \
+  --report ./examples/basic-playwright/fixtures/playwright-report.json \
+  --trace ./examples/basic-playwright/fixtures/real-trace \
+  --source-root ./examples/basic-playwright
+```
+
+This writes `.helix/helix-dashboard.html`, a static team artifact for the latest healing run and cache state.
 
 ## Quick Start
 
 ```bash
 npm install
 npm run build
-npm run --workspace @helix-heal/cli helix-heal -- analyze --report examples/basic-playwright/fixtures/playwright-report.json
+npm run --workspace helix-heal helix-heal -- analyze --report examples/basic-playwright/fixtures/playwright-report.json
 ```
 
 ## GitHub Action
 
 See [docs/github-action.md](./docs/github-action.md) for PR comment and artifact upload setup.
+
+## Publishing
+
+See [docs/publishing.md](./docs/publishing.md) for the npm publish checklist and `npx helix-heal` install path.
 
 ## Product Direction
 

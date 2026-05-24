@@ -1,5 +1,5 @@
 {
-  "name": "helix-heal",
+  "name": "helix-heal-monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "Local-first selector healing for Playwright test suites.",
@@ -10,14 +10,16 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "npm run build -w @helix-heal/core && npm run build -w @helix-heal/playwright-ingest && npm run build -w @helix-heal/cli && npm run build -w @helix-heal/github-action",
+    "build": "npm run build -w @helix-heal/core && npm run build -w @helix-heal/playwright-ingest && npm run build -w helix-heal && npm run build -w @helix-heal/github-action",
+    "bundle": "npm run bundle -w helix-heal && npm run bundle -w @helix-heal/github-action",
     "clean": "npm run clean --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "test": "npm run test -w @helix-heal/core && npm run test -w @helix-heal/playwright-ingest && npm run test -w @helix-heal/cli && npm run test -w @helix-heal/github-action",
-    "typecheck": "npm run build -w @helix-heal/core && npm run build -w @helix-heal/playwright-ingest && npm run typecheck -w @helix-heal/cli && npm run typecheck -w @helix-heal/core && npm run typecheck -w @helix-heal/github-action && npm run typecheck -w @helix-heal/playwright-ingest"
+    "test": "npm run test -w @helix-heal/core && npm run test -w @helix-heal/playwright-ingest && npm run test -w helix-heal && npm run test -w @helix-heal/github-action",
+    "typecheck": "npm run build -w @helix-heal/core && npm run build -w @helix-heal/playwright-ingest && npm run typecheck -w helix-heal && npm run typecheck -w @helix-heal/core && npm run typecheck -w @helix-heal/github-action && npm run typecheck -w @helix-heal/playwright-ingest"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",
+    "esbuild": "^0.28.0",
     "typescript": "^5.4.5",
     "vitest": "^4.1.7"
   },

@@ -1,23 +1,40 @@
 {
-  "name": "@helix-heal/cli",
+  "name": "helix-heal",
   "version": "0.1.0",
   "description": "Helix Heal command line interface.",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "bin": {
-    "helix-heal": "dist/index.js"
+    "helix-heal": "dist/index.cjs"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run bundle",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --format=cjs --target=node20 --packages=bundle --external:playwright --outfile=dist/index.cjs",
     "clean": "rimraf dist",
-    "helix-heal": "node dist/index.js",
+    "helix-heal": "node dist/index.cjs",
+    "prepublishOnly": "npm run build",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@helix-heal/core": "0.1.0",
     "@helix-heal/playwright-ingest": "0.1.0"
+  },
+  "peerDependencies": {
+    "playwright": ">=1.44.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "rimraf": "^5.0.5"

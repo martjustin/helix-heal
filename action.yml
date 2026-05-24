@@ -31,45 +31,21 @@ inputs:
 outputs:
   report-path:
     description: Path to the generated Helix Markdown report.
-    value: ${{ steps.analyze.outputs.report-path }}
   patch-path:
     description: Path to the generated dry-run patch artifact.
-    value: ${{ steps.analyze.outputs.patch-path }}
+  dashboard-path:
+    description: Path to the generated static HTML dashboard artifact.
   suggestion-count:
     description: Number of selector-related suggestions.
-    value: ${{ steps.analyze.outputs.suggestion-count }}
   patch-count:
     description: Number of safe dry-run patches.
-    value: ${{ steps.analyze.outputs.patch-count }}
   artifact-name:
     description: Uploaded GitHub Actions artifact name.
-    value: ${{ steps.analyze.outputs.artifact-name }}
   comment-action:
     description: Whether the PR comment was created or updated.
-    value: ${{ steps.analyze.outputs.comment-action }}
   comment-id:
     description: GitHub PR comment ID when a comment was written.
-    value: ${{ steps.analyze.outputs.comment-id }}
 
 runs:
-  using: composite
-  steps:
-    - name: Install Helix Heal dependencies
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: npm ci
-    - name: Build Helix Heal action
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: npm run build
-    - name: Analyze Playwright failures
-      id: analyze
-      shell: bash
-      run: node "${{ github.action_path }}/packages/github-action/dist/index.js"
-      env:
-        HELIX_PLAYWRIGHT_REPORT: ${{ inputs.playwright-report }}
-        HELIX_TEST_RESULTS: ${{ inputs.test-results }}
-        HELIX_TRACE: ${{ inputs.trace }}
-        HELIX_SOURCE_ROOT: ${{ inputs.source-root }}
-        HELIX_MIN_CONFIDENCE: ${{ inputs.min-confidence }}
-        HELIX_GITHUB_TOKEN: ${{ inputs.github-token }}
+  using: node20
+  main: packages/github-action/dist/index.cjs
