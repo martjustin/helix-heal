@@ -8,6 +8,8 @@
       name="description"
       content="Helix Heal is a local-first Playwright locator repair console that turns failed CI evidence into validated, reviewable selector patches."
     />
+    <meta name="helix-analytics-endpoint" content="" />
+    <link rel="preload" href="./assets/helix-demo.gif" as="image" />
     <link rel="preload" href="./assets/helix-report-preview.png" as="image" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -34,6 +36,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h5l2-7 2 14 2-7h3" /></svg>
             Healing Flow
           </a>
+          <a href="#pricing">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" /></svg>
+            Pricing
+          </a>
 
           <p>Core Engine</p>
           <a href="#modules">
@@ -58,7 +64,7 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>
             GitHub Action
           </a>
-          <a href="https://github.com/martjustin/helix-heal">
+          <a href="https://github.com/martjustin/helix-heal" data-analytics="repo_click">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.5 1.5-4.5-2.5-6-3m12 5v-3.9a3.4 3.4 0 0 0-1-2.6c3.2-.4 6.5-1.6 6.5-7A5.4 5.4 0 0 0 19 3.7 5 5 0 0 0 18.9 1S17.7.6 15 2.5a13.4 13.4 0 0 0-7 0C5.3.6 4.1 1 4.1 1A5 5 0 0 0 4 3.7a5.4 5.4 0 0 0-1.5 3.8c0 5.4 3.3 6.6 6.5 7a3.4 3.4 0 0 0-1 2.6V21" /></svg>
             Repository
           </a>
@@ -76,8 +82,8 @@
             <input type="search" placeholder="Search failed runs, selectors, traces..." data-module-search />
           </label>
           <div class="top-actions" aria-label="Site actions">
-            <a class="repo-link" href="https://github.com/martjustin/helix-heal">View repo</a>
-            <a class="avatar" href="#install" aria-label="Install Helix Heal">HH</a>
+            <a class="repo-link" href="https://github.com/martjustin/helix-heal" data-analytics="repo_click">View repo</a>
+            <a class="avatar" href="#install" aria-label="Install Helix Heal" data-analytics="install_click">HH</a>
           </div>
         </header>
 
@@ -90,8 +96,18 @@
                 A local-first repair layer for teams who need broken locators fixed with evidence,
                 confidence, and reviewable patches after a failed CI run.
               </p>
+              <div class="intro-actions">
+                <a class="primary-action" href="#install" data-analytics="install_click">Start healing</a>
+                <a class="secondary-action" href="#walkthrough">See walkthrough</a>
+              </div>
             </div>
-            <a class="primary-action" href="#install">Start healing</a>
+            <figure class="demo-card" aria-label="60-second Helix Heal demo">
+              <img
+                src="./assets/helix-demo.gif"
+                alt="Animated 60-second demo showing a failed Playwright run moving through Helix analysis, validation, patch generation, and a green rerun"
+              />
+              <figcaption>60-second demo: fail, analyze, patch, rerun green</figcaption>
+            </figure>
           </section>
 
           <section class="kpi-grid" aria-label="Product proof points">
@@ -295,6 +311,79 @@
             </div>
           </section>
 
+          <section id="walkthrough" class="walkthrough-section" aria-labelledby="walkthrough-title">
+            <div class="section-bar">
+              <h2 id="walkthrough-title">Real Fixture Walkthrough</h2>
+              <a href="https://github.com/martjustin/helix-heal/tree/main/examples/basic-playwright" data-analytics="repo_click">Open fixture</a>
+            </div>
+            <div class="walkthrough-grid">
+              <article>
+                <span>Fail</span>
+                <h3>Broken selector</h3>
+                <p>The fixture expects <code>Sign in</code>, but the page renders a safer accessible <code>Log in</code> button.</p>
+              </article>
+              <article>
+                <span>Analyze</span>
+                <h3>Evidence collected</h3>
+                <p>Helix reads the Playwright JSON report and trace snapshot to find the failed locator context.</p>
+              </article>
+              <article>
+                <span>Patch</span>
+                <h3>Reviewable diff</h3>
+                <p>The dry-run patch recommends a stable role/name locator instead of a brittle text selector.</p>
+              </article>
+              <article>
+                <span>Green</span>
+                <h3>Rerun clean</h3>
+                <p>After applying the reviewed locator, the same Playwright flow can rerun against the changed UI.</p>
+              </article>
+            </div>
+            <pre><code>npx playwright test
+npm exec --workspace helix-heal -- helix-heal analyze --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
+npm exec --workspace helix-heal -- helix-heal patch --dry-run --report examples/basic-playwright/fixtures/playwright-report.json --trace examples/basic-playwright/fixtures/real-trace --source-root examples/basic-playwright
+npx playwright test</code></pre>
+          </section>
+
+          <section id="limitations" class="limitations-section" aria-labelledby="limitations-title">
+            <div>
+              <p class="eyebrow">Operating boundaries</p>
+              <h2 id="limitations-title">Clear limits, fewer surprises</h2>
+              <p>
+                Helix is built to make locator repair safer, not magical. It flags uncertainty so teams
+                can decide when a human review is the right engineering move.
+              </p>
+            </div>
+            <div class="limitation-grid">
+              <article><h3>Unsupported selectors</h3><p>Complex dynamic locators may receive diagnostics instead of an automatic patch.</p></article>
+              <article><h3>Ambiguous DOM</h3><p>Multiple matching elements lower confidence and require review before a change is trusted.</p></article>
+              <article><h3>Live validation</h3><p>Browser-backed validation needs an installed Playwright browser and a reachable app URL.</p></article>
+            </div>
+          </section>
+
+          <section id="pricing" class="pricing-section" aria-labelledby="pricing-title">
+            <div class="section-bar">
+              <h2 id="pricing-title">Pricing</h2>
+              <a href="#install" data-analytics="install_click">Start free</a>
+            </div>
+            <div class="pricing-grid">
+              <article>
+                <span>Starter</span>
+                <strong>$0</strong>
+                <p>Local CLI, dry-run patches, Markdown reports, static dashboard, and community support.</p>
+              </article>
+              <article>
+                <span>Pro</span>
+                <strong>$49/mo</strong>
+                <p>Planned hosted validation, team dashboard, repair analytics, and priority support.</p>
+              </article>
+              <article>
+                <span>Consultant</span>
+                <strong>$199/mo</strong>
+                <p>Planned client workspaces, white-label reporting, branded exports, and delivery support.</p>
+              </article>
+            </div>
+          </section>
+
           <section id="install" class="command-section" aria-labelledby="install-title">
             <div>
               <p class="eyebrow">Install Flow</p>
@@ -349,6 +438,28 @@ npm exec --workspace helix-heal -- helix-heal patch --dry-run \
       const searchInput = document.querySelector("[data-module-search]");
       const moduleCards = Array.from(document.querySelectorAll("[data-searchable]"));
       const emptyState = document.querySelector("[data-empty-state]");
+      const analyticsEndpoint = document.querySelector('meta[name="helix-analytics-endpoint"]')?.content;
+
+      function track(eventName, details = {}) {
+        const event = {
+          event: eventName,
+          path: window.location.pathname,
+          details,
+          at: new Date().toISOString(),
+        };
+
+        try {
+          const history = JSON.parse(localStorage.getItem("helix_analytics_events") || "[]").slice(-49);
+          history.push(event);
+          localStorage.setItem("helix_analytics_events", JSON.stringify(history));
+        } catch {
+          // Analytics must never break the site.
+        }
+
+        if (analyticsEndpoint && navigator.sendBeacon) {
+          navigator.sendBeacon(analyticsEndpoint, JSON.stringify(event));
+        }
+      }
 
       navToggle?.addEventListener("click", () => {
         const collapsed = document.body.classList.toggle("nav-collapsed");
@@ -370,6 +481,14 @@ npm exec --workspace helix-heal -- helix-heal patch --dry-run \
           emptyState.hidden = visibleCount > 0;
         }
       });
+
+      document.querySelectorAll("[data-analytics]").forEach((element) => {
+        element.addEventListener("click", () => {
+          track(element.dataset.analytics, { label: element.textContent.trim(), href: element.getAttribute("href") });
+        });
+      });
+
+      track("page_view");
     </script>
   </body>
 </html>

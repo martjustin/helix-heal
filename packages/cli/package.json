@@ -1,10 +1,29 @@
 {
   "name": "helix-heal",
   "version": "0.1.0",
-  "description": "Helix Heal command line interface.",
+  "description": "Local-first Playwright locator healing that turns failed CI evidence into reviewable selector patches.",
   "type": "module",
   "main": "dist/index.cjs",
   "types": "dist/index.d.ts",
+  "license": "MIT",
+  "homepage": "https://martjustin.github.io/helix-heal/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martjustin/helix-heal.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/martjustin/helix-heal/issues"
+  },
+  "keywords": [
+    "playwright",
+    "testing",
+    "test-automation",
+    "self-healing-tests",
+    "locator-healing",
+    "ci",
+    "qa"
+  ],
   "files": [
     "dist",
     "README.md"
@@ -21,10 +40,6 @@
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {
-    "@helix-heal/core": "0.1.0",
-    "@helix-heal/playwright-ingest": "0.1.0"
-  },
   "peerDependencies": {
     "playwright": ">=1.44.0"
   },
@@ -38,5 +53,8 @@
   },
   "devDependencies": {
     "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

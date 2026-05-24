@@ -26,13 +26,23 @@ examples/
 docs/                  Product and implementation docs
 ```
 
-## Launch Flow: Fail, Heal, Patch
+## Launch Flow: Fail, Analyze, Patch, Rerun Green
 
-This is the core MVP workflow: configure Playwright, run a failing test, ask Helix for a healing suggestion, then generate a reviewable patch.
+This is the core MVP workflow from the public site: a failed Playwright run becomes evidence, a ranked locator suggestion, a dry-run patch, and a green rerun. Helix is intentionally honest about what it does: it narrows selector repair work with trace evidence and confidence scoring. It does not pretend to replace QA judgment.
 
 ### 1. Install
 
+After npm publishing:
+
 ```bash
+npx helix-heal --help
+```
+
+From source today:
+
+```bash
+git clone https://github.com/martjustin/helix-heal.git
+cd helix-heal
 npm install
 npm run build
 ```
@@ -68,7 +78,7 @@ npx playwright test
 ### 4. Heal the Selector
 
 ```bash
-npx helix-heal analyze \
+npm exec --workspace helix-heal -- helix-heal analyze \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -79,7 +89,7 @@ Helix will classify selector failures, inspect trace DOM evidence, rank candidat
 ### 5. Generate a Reviewable Patch
 
 ```bash
-npx helix-heal patch --dry-run \
+npm exec --workspace helix-heal -- helix-heal patch --dry-run \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
@@ -87,25 +97,51 @@ npx helix-heal patch --dry-run \
 
 The patch is printed and written to `.helix/helix-heal.patch`. Helix does not apply source changes by default.
 
-### 6. Check Setup
+### 6. Rerun Green
+
+Review the patch, apply the locator update, and rerun the suite:
 
 ```bash
-npx helix-heal doctor \
+npx playwright test
+```
+
+See [docs/failing-fixture-walkthrough.md](./docs/failing-fixture-walkthrough.md) for the real fixture walkthrough used in the launch page.
+
+### 7. Check Setup
+
+```bash
+npm exec --workspace helix-heal -- helix-heal doctor \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
 ```
 
-### 7. Share the Static Dashboard
+### 8. Share the Static Dashboard
 
 ```bash
-npx helix-heal dashboard \
+npm exec --workspace helix-heal -- helix-heal dashboard \
   --report ./examples/basic-playwright/fixtures/playwright-report.json \
   --trace ./examples/basic-playwright/fixtures/real-trace \
   --source-root ./examples/basic-playwright
 ```
 
 This writes `.helix/helix-dashboard.html`, a static team artifact for the latest healing run and cache state.
+
+## Known Limits
+
+Helix is built to be useful without sounding magical.
+
+- Unsupported selectors: complex dynamic locators may receive diagnostics instead of an automatic patch.
+- Ambiguous DOM: multiple matching elements lower confidence and require review before a patch is trusted.
+- Live validation: browser-backed validation requires an installed Playwright browser and a reachable app URL.
+
+## Pricing Direction
+
+- Starter: `$0` for local CLI, dry-run patches, Markdown reports, static dashboard, and community support.
+- Pro: planned `$49/month` for hosted validation, team dashboard, repair analytics, and priority support.
+- Consultant: planned `$199/month` for client workspaces, white-label reports, branded exports, and delivery support.
+
+The paid tiers are product direction, not a claim that hosted services are already live.
 
 ## Quick Start
 

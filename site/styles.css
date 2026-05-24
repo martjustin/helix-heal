@@ -189,6 +189,7 @@ nav a.active {
 .avatar,
 .repo-link,
 .primary-action,
+.secondary-action,
 .section-bar a {
   display: inline-flex;
   align-items: center;
@@ -269,8 +270,9 @@ nav a.active {
 }
 
 .intro {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(360px, 1fr);
+  align-items: start;
   gap: 20px;
   margin-bottom: 22px;
 }
@@ -321,13 +323,54 @@ h3 {
   line-height: 1.55;
 }
 
-.primary-action {
+.intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primary-action,
+.secondary-action {
   align-self: start;
   min-height: 32px;
   padding: 0 14px;
+  border-radius: 6px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primary-action {
   color: #fff;
   background: var(--brand);
-  font-weight: 800;
+}
+
+.secondary-action {
+  color: var(--brand-dark);
+  background: var(--soft-orange);
+  border: 1px solid #f3d2c7;
+}
+
+.demo-card {
+  margin: 0;
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.demo-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.demo-card figcaption {
+  padding: 12px 14px;
+  color: #526074;
+  font-size: 12px;
+  border-top: 1px solid var(--line);
 }
 
 .kpi-grid {
@@ -631,6 +674,9 @@ dd {
 }
 
 .workflow-section,
+.walkthrough-section,
+.limitations-section,
+.pricing-section,
 .command-section {
   margin-top: 20px;
 }
@@ -695,6 +741,81 @@ code {
   margin-bottom: 12px;
 }
 
+.walkthrough-section,
+.limitations-section,
+.pricing-section {
+  max-width: 1628px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.walkthrough-grid,
+.limitation-grid,
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.walkthrough-grid article,
+.limitation-grid article,
+.pricing-grid article {
+  min-height: 132px;
+  padding: 18px;
+  background: #fff8f6;
+  border: 1px solid #f1ddd6;
+  border-radius: 8px;
+}
+
+.walkthrough-grid span,
+.pricing-grid span {
+  display: inline-flex;
+  margin-bottom: 14px;
+  color: var(--brand-dark);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.walkthrough-grid p,
+.limitation-grid p,
+.pricing-grid p,
+.limitations-section > div > p {
+  color: #667386;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.walkthrough-section pre {
+  margin-top: 14px;
+}
+
+.limitations-section {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.55fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.limitation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pricing-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pricing-grid strong {
+  display: block;
+  color: var(--ink);
+  font-size: 28px;
+  line-height: 1;
+}
+
 .nav-collapsed .brand span:last-child,
 .nav-collapsed nav p,
 .nav-collapsed nav a {
@@ -739,7 +860,9 @@ code {
     justify-content: center;
   }
 
+  .intro,
   .dashboard-layout,
+  .limitations-section,
   .command-section {
     grid-template-columns: 1fr;
   }
@@ -748,7 +871,10 @@ code {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .insights {
+  .insights,
+  .walkthrough-grid,
+  .limitation-grid,
+  .pricing-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -794,14 +920,13 @@ code {
     padding: 18px 14px;
   }
 
-  .intro {
-    display: grid;
-  }
-
   .kpi-grid,
   .module-grid,
   .insights,
-  .workflow-grid {
+  .workflow-grid,
+  .walkthrough-grid,
+  .limitation-grid,
+  .pricing-grid {
     grid-template-columns: 1fr;
   }
 }

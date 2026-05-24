@@ -17,8 +17,11 @@ npm run build
 npm run typecheck
 npm test
 npm audit --audit-level=moderate
+npm pack -w helix-heal --dry-run
 npm publish -w helix-heal --access public
 ```
+
+If `npm whoami` returns `ENEEDAUTH`, run `npm login` first or configure an npm automation token in the environment.
 
 ## Consumer Install
 
@@ -33,4 +36,3 @@ npm install -D playwright
 npx playwright install chromium
 npx helix-heal analyze --report playwright-report.json --trace test-results --live-url http://localhost:3000
 ```
-
