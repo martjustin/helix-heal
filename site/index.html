@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Helix Heal - Playwright Selector Healing</title>
+    <meta
+      name="description"
+      content="Helix Heal analyzes failed Playwright runs, suggests safer locators, and produces reviewable patches after CI failures."
+    />
+    <link rel="preload" href="./assets/helix-report-preview.png" as="image" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Helix Heal home">
+        <span class="brand-mark" aria-hidden="true">H</span>
+        <span>Helix Heal</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#workflow">Workflow</a>
+        <a href="#action">GitHub Action</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/martjustin/helix-heal">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-image" aria-hidden="true"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">Local-first Playwright repair</p>
+          <h1 id="hero-title">Helix Heal</h1>
+          <p class="hero-copy">
+            Run it after a failed Playwright job. Helix reads the report and trace, finds broken
+            locators, validates replacements, and returns a reviewable patch.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="#install">Install</a>
+            <a class="button secondary" href="https://github.com/martjustin/helix-heal">View repo</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Product status">
+        <div>
+          <span>Scope</span>
+          <strong>Helix Heal MVP</strong>
+        </div>
+        <div>
+          <span>Surface</span>
+          <strong>CLI + Action</strong>
+        </div>
+        <div>
+          <span>Patch mode</span>
+          <strong>Dry-run first</strong>
+        </div>
+        <div>
+          <span>Data posture</span>
+          <strong>Local by default</strong>
+        </div>
+      </section>
+
+      <section id="workflow" class="band">
+        <div class="section-heading">
+          <p class="eyebrow">The after-failure loop</p>
+          <h2>From red CI to reviewed locator patch</h2>
+        </div>
+        <div class="steps">
+          <article>
+            <span>1</span>
+            <h3>Parse the failed run</h3>
+            <p>Helix reads Playwright JSON reports, failed test metadata, retries, traces, and source paths.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Inspect trace evidence</h3>
+            <p>Trace DOM snapshots and accessibility nodes become candidate locators with confidence signals.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Validate before patching</h3>
+            <p>Static and optional live validation check that the locator resolves uniquely and is actionable.</p>
+          </article>
+          <article>
+            <span>4</span>
+            <h3>Return a reviewable diff</h3>
+            <p>AST-safe patching changes only the matched locator and explains ambiguous or unsupported cases.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="install" class="split">
+        <div>
+          <p class="eyebrow">CLI</p>
+          <h2>Install, analyze, patch</h2>
+          <p>
+            The CLI is designed for local diagnosis and for CI artifacts. It writes Markdown reports,
+            dry-run patches, cache entries, and a static dashboard.
+          </p>
+        </div>
+        <pre><code>npx helix-heal analyze \
+  --report playwright-report.json \
+  --trace test-results \
+  --source-root .
+
+npx helix-heal patch --dry-run \
+  --report playwright-report.json \
+  --trace test-results \
+  --source-root .</code></pre>
+      </section>
+
+      <section id="action" class="band action-band">
+        <div class="section-heading">
+          <p class="eyebrow">GitHub Action</p>
+          <h2>Run Helix after Playwright fails</h2>
+        </div>
+        <pre><code>- name: Run Playwright
+  id: playwright
+  run: npx playwright test --reporter=json
+  continue-on-error: true
+
+- uses: martjustin/helix-heal@main
+  if: steps.playwright.outcome == 'failure'
+  with:
+    playwright-report: playwright-report.json
+    trace: test-results
+    source-root: .</code></pre>
+      </section>
+
+      <section class="report-preview" aria-label="Example Helix output">
+        <div>
+          <p class="eyebrow">Output</p>
+          <h2>Concrete suggestions, not vague failure summaries</h2>
+          <p>
+            A Helix run can produce a PR comment, Markdown report, dry-run patch, and static team
+            dashboard artifact. The current MVP stays intentionally narrow: repair locators first.
+          </p>
+        </div>
+        <img
+          src="./assets/helix-report-preview.png"
+          alt="Helix Heal report preview showing selector failure, suggestion confidence, and patch output"
+        />
+      </section>
+    </main>
+
+    <footer>
+      <span>Helix Heal</span>
+      <a href="https://github.com/martjustin/helix-heal">GitHub repository</a>
+    </footer>
+  </body>
+</html>
