@@ -20,6 +20,93 @@ async function assertPage(page, viewportName) {
   if (overflow) {
     throw new Error(`Horizontal overflow detected in ${viewportName} viewport`);
   }
+
+  const accessibilityIssues = await page.evaluate(() => {
+    const issues = [];
+    const hasName = (element) => {
+      const text = element.textContent?.trim();
+      return Boolean(text || element.getAttribute("aria-label") || element.getAttribute("title"));
+    };
+
+    if (!document.querySelector("main")) {
+      issues.push("Missing main landmark");
+    }
+
+    if (!document.querySelector("nav[aria-label]")) {
+      issues.push("Primary navigation needs an accessible label");
+    }
+
+    document.querySelectorAll("a, button").forEach((element) => {
+      if (!hasName(element)) {
+        issues.push(`Interactive element lacks accessible name: ${element.tagName.toLowerCase()}`);
+      }
+    });
+
+    document.querySelectorAll("img").forEach((image) => {
+      if (!image.getAttribute("alt")) {
+        issues.push(`Image is missing alt text: ${image.getAttribute("src") || "unknown source"}`);
+      }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      const href = link.getAttribute("href");
+      if (href && href !== "#" && !document.querySelector(href)) {
+        issues.push(`Internal link target missing: ${href}`);
+      }
+    });
+
+    const luminance = (rgb) => {
+      const values = rgb.map((channel) => {
+        const value = channel / 255;
+        return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * values[0] + 0.7152 * values[1] + 0.0722 * values[2];
+    };
+
+    const parseRgb = (color) => {
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+    };
+
+    const contrastRatio = (foreground, background) => {
+      const fg = parseRgb(foreground);
+      const bg = parseRgb(background);
+      if (!fg || !bg) return null;
+      const light = Math.max(luminance(fg), luminance(bg));
+      const dark = Math.min(luminance(fg), luminance(bg));
+      return (light + 0.05) / (dark + 0.05);
+    };
+
+    const samples = [
+      document.querySelector(".intro p:not(.eyebrow)"),
+      document.querySelector(".kpi-card p"),
+      document.querySelector("nav a"),
+      document.querySelector(".module-heading p"),
+      document.querySelector("pre"),
+    ].filter(Boolean);
+
+    samples.forEach((element) => {
+      const style = window.getComputedStyle(element);
+      let background = style.backgroundColor;
+      let parent = element.parentElement;
+
+      while (parent && (background === "rgba(0, 0, 0, 0)" || background === "transparent")) {
+        background = window.getComputedStyle(parent).backgroundColor;
+        parent = parent.parentElement;
+      }
+
+      const ratio = contrastRatio(style.color, background);
+      if (ratio !== null && ratio < 4.5) {
+        issues.push(`Low text contrast on ${element.tagName.toLowerCase()}: ${ratio.toFixed(2)}`);
+      }
+    });
+
+    return issues;
+  });
+
+  if (accessibilityIssues.length > 0) {
+    throw new Error(`Accessibility/usability issues in ${viewportName} viewport:\n${accessibilityIssues.join("\n")}`);
+  }
 }
 
 async function main() {
@@ -31,7 +118,7 @@ async function main() {
   await assertPage(page, "mobile");
 
   await browser.close();
-  console.log("Site verification passed for desktop and mobile");
+  console.log("Site usability and accessibility verification passed for desktop and mobile");
 }
 
 main().catch((error) => {
