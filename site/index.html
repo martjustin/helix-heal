@@ -3,104 +3,307 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Helix Heal - Playwright Selector Healing</title>
+    <title>Helix Heal - Playwright Locator Repair Console</title>
     <meta
       name="description"
-      content="Helix Heal analyzes failed Playwright runs, suggests safer locators, and produces reviewable patches after CI failures."
+      content="Helix Heal is a local-first Playwright locator repair console that turns failed CI evidence into validated, reviewable selector patches."
     />
     <link rel="preload" href="./assets/helix-report-preview.png" as="image" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="#top" aria-label="Helix Heal home">
-        <span class="brand-mark" aria-hidden="true">H</span>
-        <span>Helix Heal</span>
-      </a>
-      <nav aria-label="Primary navigation">
-        <a href="#workflow">Workflow</a>
-        <a href="#action">GitHub Action</a>
-        <a href="#install">Install</a>
-        <a href="https://github.com/martjustin/helix-heal">GitHub</a>
-      </nav>
-    </header>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Product navigation">
+        <a class="brand" href="#main" aria-label="Helix Heal home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 3v18M18 3v18M6 8h12M6 16h12" />
+            </svg>
+          </span>
+          <span>Helix Heal</span>
+        </a>
 
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-image" aria-hidden="true"></div>
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <p class="eyebrow">Local-first Playwright repair</p>
-          <h1 id="hero-title">Helix Heal</h1>
-          <p class="hero-copy">
-            Run it after a failed Playwright job. Helix reads the report and trace, finds broken
-            locators, validates replacements, and returns a reviewable patch.
-          </p>
-          <div class="hero-actions" aria-label="Primary actions">
-            <a class="button primary" href="#install">Install</a>
-            <a class="button secondary" href="https://github.com/martjustin/helix-heal">View repo</a>
+        <nav aria-label="Helix product sections">
+          <p>Overview</p>
+          <a class="active" href="#main">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-11h6V4h-6v5Z" /></svg>
+            Dashboard
+          </a>
+          <a href="#workflow">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h5l2-7 2 14 2-7h3" /></svg>
+            Healing Flow
+          </a>
+
+          <p>Core Engine</p>
+          <a href="#modules">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v18M4 7.5l8 4.5 8-4.5" /></svg>
+            Locator Repair
+          </a>
+          <a href="#modules">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5V4Zm3 4h8M8 12h8M8 16h5" /></svg>
+            Trace Evidence
+          </a>
+          <a href="#modules">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg>
+            Validation Probe
+          </a>
+
+          <p>Delivery</p>
+          <a href="#install">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h16M8 7l4 4 4-4M12 11V3M6 21h12" /></svg>
+            Install CLI
+          </a>
+          <a href="#github-action">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>
+            GitHub Action
+          </a>
+          <a href="https://github.com/martjustin/helix-heal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 19c-4.5 1.5-4.5-2.5-6-3m12 5v-3.9a3.4 3.4 0 0 0-1-2.6c3.2-.4 6.5-1.6 6.5-7A5.4 5.4 0 0 0 19 3.7 5 5 0 0 0 18.9 1S17.7.6 15 2.5a13.4 13.4 0 0 0-7 0C5.3.6 4.1 1 4.1 1A5 5 0 0 0 4 3.7a5.4 5.4 0 0 0-1.5 3.8c0 5.4 3.3 6.6 6.5 7a3.4 3.4 0 0 0-1 2.6V21" /></svg>
+            Repository
+          </a>
+        </nav>
+      </aside>
+
+      <div class="workspace">
+        <header class="topbar">
+          <button class="icon-button" type="button" aria-label="Collapse navigation">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h16" /></svg>
+          </button>
+          <label class="search">
+            <span class="visually-hidden">Search Helix capabilities</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.3-4.3M10 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" /></svg>
+            <input type="search" placeholder="Search failed runs, selectors, traces..." />
+          </label>
+          <div class="top-actions" aria-label="Site actions">
+            <a class="repo-link" href="https://github.com/martjustin/helix-heal">View repo</a>
+            <a class="avatar" href="#install" aria-label="Install Helix Heal">HH</a>
           </div>
-        </div>
-      </section>
+        </header>
 
-      <section class="metrics" aria-label="Product status">
-        <div>
-          <span>Scope</span>
-          <strong>Helix Heal MVP</strong>
-        </div>
-        <div>
-          <span>Surface</span>
-          <strong>CLI + Action</strong>
-        </div>
-        <div>
-          <span>Patch mode</span>
-          <strong>Dry-run first</strong>
-        </div>
-        <div>
-          <span>Data posture</span>
-          <strong>Local by default</strong>
-        </div>
-      </section>
+        <main id="main" class="content">
+          <section class="intro" aria-labelledby="page-title">
+            <div>
+              <p class="eyebrow">Self-healing Playwright operations</p>
+              <h1 id="page-title">Helix Heal Overview</h1>
+              <p>
+                A local-first repair layer for teams who need broken locators fixed with evidence,
+                confidence, and reviewable patches after a failed CI run.
+              </p>
+            </div>
+            <a class="primary-action" href="#install">Start healing</a>
+          </section>
 
-      <section id="workflow" class="band">
-        <div class="section-heading">
-          <p class="eyebrow">The after-failure loop</p>
-          <h2>From red CI to reviewed locator patch</h2>
-        </div>
-        <div class="steps">
-          <article>
-            <span>1</span>
-            <h3>Parse the failed run</h3>
-            <p>Helix reads Playwright JSON reports, failed test metadata, retries, traces, and source paths.</p>
-          </article>
-          <article>
-            <span>2</span>
-            <h3>Inspect trace evidence</h3>
-            <p>Trace DOM snapshots and accessibility nodes become candidate locators with confidence signals.</p>
-          </article>
-          <article>
-            <span>3</span>
-            <h3>Validate before patching</h3>
-            <p>Static and optional live validation check that the locator resolves uniquely and is actionable.</p>
-          </article>
-          <article>
-            <span>4</span>
-            <h3>Return a reviewable diff</h3>
-            <p>AST-safe patching changes only the matched locator and explains ambiguous or unsupported cases.</p>
-          </article>
-        </div>
-      </section>
+          <section class="kpi-grid" aria-label="Product proof points">
+            <article class="kpi-card">
+              <div class="card-topline">
+                <span>Repair Confidence</span>
+                <span class="metric-icon orange">$</span>
+              </div>
+              <strong>0.85+</strong>
+              <p><span class="positive">auto-ready threshold</span> for confident locator replacements</p>
+            </article>
+            <article class="kpi-card">
+              <div class="card-topline">
+                <span>QA Time Recovered</span>
+                <span class="metric-icon blue">T</span>
+              </div>
+              <strong>30-40%</strong>
+              <p><span class="positive">maintenance drag</span> targeted by the MVP painkiller</p>
+            </article>
+            <article class="kpi-card">
+              <div class="card-topline">
+                <span>Patch Posture</span>
+                <span class="metric-icon green">P</span>
+              </div>
+              <strong>Dry-run</strong>
+              <p><span class="positive">review first</span> with optional automation after validation</p>
+            </article>
+            <article class="kpi-card">
+              <div class="card-topline">
+                <span>Data Boundary</span>
+                <span class="metric-icon purple">L</span>
+              </div>
+              <strong>Local</strong>
+              <p><span class="positive">no lock-in</span> with report, cache, and trace evidence on disk</p>
+            </article>
+          </section>
 
-      <section id="install" class="split">
-        <div>
-          <p class="eyebrow">CLI</p>
-          <h2>Install, analyze, patch</h2>
-          <p>
-            The CLI is designed for local diagnosis and for CI artifacts. It writes Markdown reports,
-            dry-run patches, cache entries, and a static dashboard.
-          </p>
-        </div>
-        <pre><code>npx helix-heal analyze \
+          <div class="dashboard-layout">
+            <section id="modules" class="modules" aria-labelledby="modules-title">
+              <div class="section-bar">
+                <h2 id="modules-title">Core Product Modules</h2>
+                <a href="#github-action">Manage CI flow</a>
+              </div>
+
+              <div class="module-grid">
+                <article class="module-card">
+                  <div class="module-heading">
+                    <span class="module-icon orange">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7V7Zm2-4h6v4H9V3Zm0 14h6v4H9v-4ZM3 9h4v6H3V9Zm14 0h4v6h-4V9Z" /></svg>
+                    </span>
+                    <div>
+                      <h3>Real Report Ingestion</h3>
+                      <p>Playwright JSON, failed tests, retries, attachments</p>
+                    </div>
+                    <span class="status active">Active</span>
+                  </div>
+                  <dl>
+                    <div><dt>Inputs</dt><dd>Reports + traces</dd></div>
+                    <div><dt>Failure map</dt><dd>Spec path + locator</dd></div>
+                    <div><dt>Output</dt><dd>Evidence bundle</dd></div>
+                  </dl>
+                </article>
+
+                <article class="module-card">
+                  <div class="module-heading">
+                    <span class="module-icon green">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" /></svg>
+                    </span>
+                    <div>
+                      <h3>DOM-Aware Candidates</h3>
+                      <p>Accessibility-first selector generation</p>
+                    </div>
+                    <span class="status active">Active</span>
+                  </div>
+                  <dl>
+                    <div><dt>Preferred</dt><dd>role/name</dd></div>
+                    <div><dt>Fallback</dt><dd>label/text/test id</dd></div>
+                    <div><dt>Noise guard</dt><dd>ranked confidence</dd></div>
+                  </dl>
+                </article>
+
+                <article class="module-card">
+                  <div class="module-heading">
+                    <span class="module-icon purple">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14M7 7l10 10M17 7 7 17" /></svg>
+                    </span>
+                    <div>
+                      <h3>Validation Probe</h3>
+                      <p>Static plus live uniqueness checks</p>
+                    </div>
+                    <span class="status active">Active</span>
+                  </div>
+                  <dl>
+                    <div><dt>Resolve</dt><dd>unique match</dd></div>
+                    <div><dt>Actionable</dt><dd>visible + enabled</dd></div>
+                    <div><dt>Risk</dt><dd>ambiguous flagged</dd></div>
+                  </dl>
+                </article>
+
+                <article class="module-card">
+                  <div class="module-heading">
+                    <span class="module-icon blue">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l3 3v15H6V3Zm8 0v4h4M9 13h6M9 17h6M9 9h3" /></svg>
+                    </span>
+                    <div>
+                      <h3>Dry-Run Patch Generator</h3>
+                      <p>AST-safe diff suggestions for review</p>
+                    </div>
+                    <span class="status active">Active</span>
+                  </div>
+                  <dl>
+                    <div><dt>Mode</dt><dd>review-first</dd></div>
+                    <div><dt>Scope</dt><dd>matched locator only</dd></div>
+                    <div><dt>Diagnostics</dt><dd>unsupported cases</dd></div>
+                  </dl>
+                </article>
+
+                <article class="module-card">
+                  <div class="module-heading">
+                    <span class="module-icon gold">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H7l-3 3V4Zm4 5h8M8 13h5" /></svg>
+                    </span>
+                    <div>
+                      <h3>GitHub PR Comment</h3>
+                      <p>Readable repair summary where developers work</p>
+                    </div>
+                    <span class="status warning">Review</span>
+                  </div>
+                  <dl>
+                    <div><dt>Comment</dt><dd>failure reason</dd></div>
+                    <div><dt>Patch</dt><dd>candidate diff</dd></div>
+                    <div><dt>Artifacts</dt><dd>Markdown + HTML</dd></div>
+                  </dl>
+                </article>
+
+                <article class="module-card visual-card">
+                  <div class="module-heading">
+                    <span class="module-icon teal">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4V5Zm3 10 3-3 2 2 3-4 2 5" /></svg>
+                    </span>
+                    <div>
+                      <h3>Report Preview</h3>
+                      <p>Confidence, reasoning, and patch output</p>
+                    </div>
+                    <span class="status active">Active</span>
+                  </div>
+                  <img
+                    src="./assets/helix-report-preview.png"
+                    alt="Helix Heal report preview showing selector candidates, confidence scores, and validation progress"
+                  />
+                </article>
+              </div>
+            </section>
+
+            <aside class="insights" aria-label="Product readiness insights">
+              <section class="panel">
+                <h2>System Health</h2>
+                <div class="health-row">
+                  <span>CLI build</span>
+                  <strong>100%</strong>
+                  <div class="meter"><span style="width: 100%"></span></div>
+                </div>
+                <div class="health-row">
+                  <span>Report ingestion</span>
+                  <strong>96%</strong>
+                  <div class="meter"><span style="width: 96%"></span></div>
+                </div>
+                <div class="health-row">
+                  <span>Live validation</span>
+                  <strong>82%</strong>
+                  <div class="meter warning-meter"><span style="width: 82%"></span></div>
+                </div>
+                <div class="health-row">
+                  <span>Hosted dashboard</span>
+                  <strong>0%</strong>
+                  <div class="meter muted-meter"><span style="width: 8%"></span></div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <h2>Recent Outcomes</h2>
+                <ul class="alerts">
+                  <li><span class="dot orange-dot"></span><div><strong>Unsupported selectors diagnosed</strong><small>clearer patch failures</small></div></li>
+                  <li><span class="dot blue-dot"></span><div><strong>GitHub Action bundled</strong><small>faster CI startup</small></div></li>
+                  <li><span class="dot green-dot"></span><div><strong>Public launch page online</strong><small>global buyer-ready positioning</small></div></li>
+                </ul>
+              </section>
+            </aside>
+          </div>
+
+          <section id="workflow" class="workflow-section" aria-labelledby="workflow-title">
+            <div class="section-bar">
+              <h2 id="workflow-title">After-Failure Workflow</h2>
+            </div>
+            <div class="workflow-grid">
+              <article><span>01</span><h3>Fail</h3><p>Playwright CI turns red and saves the report, trace, and source context.</p></article>
+              <article><span>02</span><h3>Analyze</h3><p>Helix extracts locator evidence and ranks safer replacements.</p></article>
+              <article><span>03</span><h3>Validate</h3><p>Candidate selectors are checked for uniqueness and actionability.</p></article>
+              <article><span>04</span><h3>Patch</h3><p>Developers receive a dry-run diff and PR comment with confidence signals.</p></article>
+            </div>
+          </section>
+
+          <section id="install" class="command-section" aria-labelledby="install-title">
+            <div>
+              <p class="eyebrow">Install Flow</p>
+              <h2 id="install-title">Run this after a failed Playwright job</h2>
+              <p>
+                Helix stays easy to evaluate: no hosted account, no vendor lock-in, and no framework
+                migration before the first repair suggestion.
+              </p>
+            </div>
+            <pre><code>npx helix-heal analyze \
   --report playwright-report.json \
   --trace test-results \
   --source-root .
@@ -109,14 +312,18 @@ npx helix-heal patch --dry-run \
   --report playwright-report.json \
   --trace test-results \
   --source-root .</code></pre>
-      </section>
+          </section>
 
-      <section id="action" class="band action-band">
-        <div class="section-heading">
-          <p class="eyebrow">GitHub Action</p>
-          <h2>Run Helix after Playwright fails</h2>
-        </div>
-        <pre><code>- name: Run Playwright
+          <section id="github-action" class="command-section action-section" aria-labelledby="action-title">
+            <div>
+              <p class="eyebrow">CI Handoff</p>
+              <h2 id="action-title">Publish a repair plan in the pull request</h2>
+              <p>
+                The action is designed to run only after failure, preserving CI speed while turning
+                breakage into a focused, developer-readable next step.
+              </p>
+            </div>
+            <pre><code>- name: Run Playwright
   id: playwright
   run: npx playwright test --reporter=json
   continue-on-error: true
@@ -127,27 +334,9 @@ npx helix-heal patch --dry-run \
     playwright-report: playwright-report.json
     trace: test-results
     source-root: .</code></pre>
-      </section>
-
-      <section class="report-preview" aria-label="Example Helix output">
-        <div>
-          <p class="eyebrow">Output</p>
-          <h2>Concrete suggestions, not vague failure summaries</h2>
-          <p>
-            A Helix run can produce a PR comment, Markdown report, dry-run patch, and static team
-            dashboard artifact. The current MVP stays intentionally narrow: repair locators first.
-          </p>
-        </div>
-        <img
-          src="./assets/helix-report-preview.png"
-          alt="Helix Heal report preview showing selector failure, suggestion confidence, and patch output"
-        />
-      </section>
-    </main>
-
-    <footer>
-      <span>Helix Heal</span>
-      <a href="https://github.com/martjustin/helix-heal">GitHub repository</a>
-    </footer>
+          </section>
+        </main>
+      </div>
+    </div>
   </body>
 </html>
