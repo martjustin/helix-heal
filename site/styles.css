@@ -95,6 +95,10 @@ input:focus-visible {
   min-height: 100vh;
 }
 
+.nav-collapsed .app-shell {
+  grid-template-columns: 76px 1fr;
+}
+
 .sidebar {
   position: sticky;
   top: 0;
@@ -689,6 +693,30 @@ code {
 
 .action-section {
   margin-bottom: 12px;
+}
+
+.nav-collapsed .brand span:last-child,
+.nav-collapsed nav p,
+.nav-collapsed nav a {
+  font-size: 0;
+}
+
+.nav-collapsed nav a {
+  justify-content: center;
+  padding: 10px;
+}
+
+.nav-collapsed .brand {
+  justify-content: center;
+}
+
+.empty-state {
+  margin: 14px 0 0;
+  padding: 18px;
+  color: #526074;
+  background: var(--paper);
+  border: 1px dashed #c9d2dd;
+  border-radius: 8px;
 }
 
 @media (max-width: 1180px) {

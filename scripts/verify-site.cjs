@@ -2,7 +2,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const repoRoot = path.resolve(__dirname, "..");
-const siteUrl = `file://${path.join(repoRoot, "site", "index.html").replace(/\\/g, "/")}`;
+const siteUrl = process.env.HELIX_SITE_URL || `file://${path.join(repoRoot, "site", "index.html").replace(/\\/g, "/")}`;
 
 async function assertPage(page, viewportName) {
   await page.goto(siteUrl);
@@ -107,6 +107,40 @@ async function assertPage(page, viewportName) {
   if (accessibilityIssues.length > 0) {
     throw new Error(`Accessibility/usability issues in ${viewportName} viewport:\n${accessibilityIssues.join("\n")}`);
   }
+
+  if (viewportName === "desktop") {
+    const beforeColumns = await page.locator(".app-shell").evaluate((element) => {
+      return window.getComputedStyle(element).gridTemplateColumns;
+    });
+    await page.locator("[data-nav-toggle]").click();
+    const afterColumns = await page.locator(".app-shell").evaluate((element) => {
+      return window.getComputedStyle(element).gridTemplateColumns;
+    });
+    const isCollapsed = await page.evaluate(() => document.body.classList.contains("nav-collapsed"));
+
+    if (!isCollapsed || beforeColumns === afterColumns) {
+      throw new Error("Navigation collapse control did not change layout state");
+    }
+
+    await page.locator("[data-nav-toggle]").click();
+
+    await page.locator("[data-module-search]").fill("validation");
+    const visibleAfterSearch = await page.locator("[data-searchable]:visible").count();
+    const validationVisible = await page.locator("article", { hasText: "Validation Probe" }).isVisible();
+
+    if (visibleAfterSearch < 1 || !validationVisible) {
+      throw new Error("Module search did not surface the validation module");
+    }
+
+    await page.locator("[data-module-search]").fill("no-such-module");
+    const emptyVisible = await page.locator("[data-empty-state]").isVisible();
+
+    if (!emptyVisible) {
+      throw new Error("Module search empty state did not appear");
+    }
+
+    await page.locator("[data-module-search]").fill("");
+  }
 }
 
 async function main() {
@@ -118,7 +152,7 @@ async function main() {
   await assertPage(page, "mobile");
 
   await browser.close();
-  console.log("Site usability and accessibility verification passed for desktop and mobile");
+  console.log(`Site E2E usability and accessibility verification passed for desktop and mobile: ${siteUrl}`);
 }
 
 main().catch((error) => {
