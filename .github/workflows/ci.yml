@@ -31,6 +31,10 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
+      - name: Run product readiness E2E
+        run: HELIX_E2E_SKIP_PUBLISHED=1 npm run test:e2e
+      - name: Verify static site
+        run: npm run site:verify
       - name: Run live validation smoke
         run: |
           LIVE_URL="file://${PWD}/examples/basic-playwright/live/login.html"

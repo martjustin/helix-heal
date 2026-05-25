@@ -45,5 +45,9 @@ function validationConfidenceAdjustment(candidate: CandidateLocator): number {
     return -0.3;
   }
 
+  if (candidate.validation?.status === "unknown") {
+    return -0.1;
+  }
+
   return 0;
 }

@@ -18,6 +18,7 @@
     "site:demo": "python scripts/generate-demo-gif.py",
     "site:verify": "node scripts/verify-site.cjs",
     "test": "npm run test -w @helix-heal/core && npm run test -w @helix-heal/playwright-ingest && npm run test -w helix-heal && npm run test -w @helix-heal/github-action",
+    "test:e2e": "node scripts/e2e-product-readiness.cjs",
     "typecheck": "npm run build -w @helix-heal/core && npm run build -w @helix-heal/playwright-ingest && npm run typecheck -w helix-heal && npm run typecheck -w @helix-heal/core && npm run typecheck -w @helix-heal/github-action && npm run typecheck -w @helix-heal/playwright-ingest"
   },
   "devDependencies": {

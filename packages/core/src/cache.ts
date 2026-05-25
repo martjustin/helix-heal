@@ -20,14 +20,23 @@ export type HealCache = {
 };
 
 export async function readHealCache(cachePath: string): Promise<HealCache> {
+  let raw: string;
   try {
-    const raw = await readFile(cachePath, "utf8");
+    raw = await readFile(cachePath, "utf8");
+  } catch {
+    return { version: 1, entries: [] };
+  }
+
+  try {
     const parsed = JSON.parse(raw) as HealCache;
     return {
       version: 1,
       entries: Array.isArray(parsed.entries) ? parsed.entries : []
     };
-  } catch {
+  } catch (error) {
+    console.warn(
+      `Heal cache ignored: ${cachePath} is not valid JSON (${error instanceof Error ? error.message : String(error)})`
+    );
     return { version: 1, entries: [] };
   }
 }

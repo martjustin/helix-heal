@@ -113,11 +113,10 @@ async function analyzeFromOptions(options: CliOptions) {
   const sourceRoot = resolve(cwd, options.sourceRoot ?? ".");
   const cachePath = resolve(cwd, ".helix/heal-cache.json");
   const rawFailures = await ingestPlaywrightJsonReport(reportPath);
-  const traceContext = options.trace
-    ? await extractTraceContext(resolve(cwd, options.trace), {
-        failedSelector: rawFailures[0]?.failedSelector
-      })
-    : undefined;
+  const traceContext = await readOptionalTraceContext(
+    options.trace ? resolve(cwd, options.trace) : undefined,
+    rawFailures[0]?.failedSelector
+  );
   const failures = rawFailures.map((failure) => ({
     ...failure,
     traceContext: traceContext ?? failure.traceContext,
@@ -143,22 +142,47 @@ async function analyzeFromOptions(options: CliOptions) {
   return result;
 }
 
+async function readOptionalTraceContext(
+  tracePath: string | undefined,
+  failedSelector: string | undefined
+) {
+  if (!tracePath) {
+    return undefined;
+  }
+
+  try {
+    return await extractTraceContext(tracePath, { failedSelector });
+  } catch (error) {
+    console.warn(
+      `Trace context skipped: ${tracePath} could not be read (${error instanceof Error ? error.message : String(error)})`
+    );
+    return undefined;
+  }
+}
+
 async function applyOptionalLiveValidation(
   result: AnalyzeResult,
   config: HelixConfig,
   liveUrl: string
 ): Promise<void> {
+  let browser:
+    | {
+        newPage: () => Promise<import("playwright").Page>;
+        close: () => Promise<void>;
+      }
+    | undefined;
   try {
     const playwright = await import("playwright");
-    const browser = await playwright.chromium.launch({ headless: true });
+    browser = await playwright.chromium.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto(liveUrl);
     await applyLiveValidationWithPage(result, config, page);
-    await browser.close();
   } catch (error) {
     console.warn(
       `Live validation skipped: ${error instanceof Error ? error.message : String(error)}`
     );
+  } finally {
+    await browser?.close().catch(() => undefined);
   }
 }
 

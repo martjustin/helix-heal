@@ -152,3 +152,15 @@ See [docs/publishing.md](./docs/publishing.md) for the npm publish checklist and
 ## Product Direction
 
 See [HELIX_HEAL_PRD.md](./HELIX_HEAL_PRD.md) for the product scope, architecture, success metrics, and 90-day build plan.
+
+## Product Readiness
+
+Run the claim-level E2E harness before launch pushes:
+
+```bash
+npm run build
+npm run test:e2e
+npm run site:verify
+```
+
+See [docs/product-readiness-report.md](./docs/product-readiness-report.md) for the current completion critique, market-readiness gates, and features to add or avoid.

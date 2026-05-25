@@ -96,6 +96,10 @@ function elementToCandidates(
   action: NormalizedFailure["action"]
 ): CandidateLocator[] {
   const candidates: CandidateLocator[] = [];
+  if (isHiddenOrDisabled(element.attrs)) {
+    return candidates;
+  }
+
   const testId = element.attrs[config.testIdAttribute];
   const role = element.attrs.role ?? roleFromTag(element.tag, element.attrs);
   const name = element.attrs["aria-label"] ?? element.text;
@@ -138,6 +142,18 @@ function elementToCandidates(
   }
 
   return candidates;
+}
+
+function isHiddenOrDisabled(attrs: Record<string, string>): boolean {
+  const style = attrs.style?.toLowerCase() ?? "";
+  return (
+    "hidden" in attrs ||
+    "disabled" in attrs ||
+    attrs["aria-hidden"] === "true" ||
+    attrs["aria-disabled"] === "true" ||
+    style.includes("display: none") ||
+    style.includes("visibility: hidden")
+  );
 }
 
 function isActionCompatible(role: string | undefined, action: NormalizedFailure["action"]): boolean {
@@ -187,6 +203,11 @@ function parseAttributes(attrText: string): Record<string, string> {
   while ((match = attrPattern.exec(attrText)) !== null) {
     const [, name, doubleQuoted, singleQuoted, unquoted] = match;
     attrs[name] = doubleQuoted ?? singleQuoted ?? unquoted ?? "";
+  }
+
+  const booleanAttrPattern = /(?:^|\s)(hidden|disabled)(?=\s|$)/g;
+  while ((match = booleanAttrPattern.exec(attrText)) !== null) {
+    attrs[match[1]] = "true";
   }
 
   return attrs;

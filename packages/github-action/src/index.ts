@@ -22,9 +22,7 @@ async function run(): Promise<void> {
   const minConfidence = Number(getActionInput("min-confidence", "HELIX_MIN_CONFIDENCE", "0.75"));
   const token = getActionInput("github-token", "HELIX_GITHUB_TOKEN", "");
   const resolvedTracePath = tracePath ? resolve(process.cwd(), tracePath) : undefined;
-  const traceContext = resolvedTracePath && (await exists(resolvedTracePath))
-    ? await extractTraceContext(resolvedTracePath)
-    : undefined;
+  const traceContext = await readOptionalTraceContext(resolvedTracePath);
 
   const failures = (await ingestPlaywrightJsonReport(resolve(process.cwd(), reportPath))).map((failure) => ({
     ...failure,
@@ -92,6 +90,21 @@ async function run(): Promise<void> {
     }
   } else {
     core.info("No pull request context or token found; skipped PR comment.");
+  }
+}
+
+async function readOptionalTraceContext(tracePath: string | undefined) {
+  if (!tracePath || !(await exists(tracePath))) {
+    return undefined;
+  }
+
+  try {
+    return await extractTraceContext(tracePath);
+  } catch (error) {
+    core.warning(
+      `Trace context skipped: ${tracePath} could not be read (${error instanceof Error ? error.message : String(error)})`
+    );
+    return undefined;
   }
 }
 

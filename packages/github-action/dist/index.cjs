@@ -307424,6 +307424,9 @@ function generateDomCandidates(failure, config) {
 }
 function elementToCandidates(element, config, action5) {
   const candidates = [];
+  if (isHiddenOrDisabled(element.attrs)) {
+    return candidates;
+  }
   const testId = element.attrs[config.testIdAttribute];
   const role = element.attrs.role ?? roleFromTag(element.tag, element.attrs);
   const name = element.attrs["aria-label"] ?? element.text;
@@ -307461,6 +307464,10 @@ function elementToCandidates(element, config, action5) {
     });
   }
   return candidates;
+}
+function isHiddenOrDisabled(attrs) {
+  const style = attrs.style?.toLowerCase() ?? "";
+  return "hidden" in attrs || "disabled" in attrs || attrs["aria-hidden"] === "true" || attrs["aria-disabled"] === "true" || style.includes("display: none") || style.includes("visibility: hidden");
 }
 function isActionCompatible(role, action5) {
   if (!role || action5 !== "click") {
@@ -307501,6 +307508,10 @@ function parseAttributes(attrText) {
   while ((match = attrPattern.exec(attrText)) !== null) {
     const [, name, doubleQuoted, singleQuoted, unquoted] = match;
     attrs[name] = doubleQuoted ?? singleQuoted ?? unquoted ?? "";
+  }
+  const booleanAttrPattern = /(?:^|\s)(hidden|disabled)(?=\s|$)/g;
+  while ((match = booleanAttrPattern.exec(attrText)) !== null) {
+    attrs[match[1]] = "true";
   }
   return attrs;
 }
@@ -307575,6 +307586,9 @@ function validationConfidenceAdjustment(candidate) {
   if (candidate.validation?.status === "failed") {
     return -0.3;
   }
+  if (candidate.validation?.status === "unknown") {
+    return -0.1;
+  }
   return 0;
 }
 
@@ -307648,11 +307662,8 @@ function countRoleMatches(role, name, failure) {
   if (axMatches > 0) {
     return axMatches;
   }
-  return context5.domSnapshots.reduce((count, snapshot2) => {
-    const html = snapshot2.html ?? "";
-    const rolePattern = new RegExp(`role=["']${escapeRegExp(role)}["']`, "g");
-    const namePattern = new RegExp(escapeRegExp(name), "g");
-    return count + Math.min(countRegex(html, rolePattern), countRegex(html, namePattern));
+  return uniqueSnapshotHtmls(failure).reduce((count, html) => {
+    return count + countRoleElements(html, role, name);
   }, 0);
 }
 function countTestIdMatches(testId, failure) {
@@ -307660,19 +307671,62 @@ function countTestIdMatches(testId, failure) {
   if (!context5)
     return 0;
   const selectorMatches = context5.accessibilityNodes.filter((node) => node.selector?.includes(testId)).length;
-  const domMatches = context5.domSnapshots.reduce((count, snapshot2) => {
-    const html = snapshot2.html ?? "";
+  const domMatches = uniqueSnapshotHtmls(failure).reduce((count, html) => {
     return count + countRegex(html, new RegExp(`data-testid=["']${escapeRegExp(testId)}["']`, "g"));
   }, 0);
-  return Math.max(selectorMatches > 0 ? 1 : 0, domMatches > 0 ? 1 : 0);
+  return Math.max(selectorMatches, domMatches);
 }
 function countTextMatches(text, failure) {
   const context5 = failure.traceContext;
   if (!context5)
     return 0;
-  return context5.domSnapshots.reduce((count, snapshot2) => {
-    return count + countOccurrences(`${snapshot2.text ?? ""} ${snapshot2.html ?? ""}`, text);
+  return uniqueSnapshotTexts(failure).reduce((count, snapshot2) => {
+    return count + countOccurrences(snapshot2, text);
   }, 0);
+}
+function uniqueSnapshotHtmls(failure) {
+  const htmls = failure.traceContext?.domSnapshots.map((snapshot2) => snapshot2.html ?? "").filter(Boolean) ?? [];
+  return [...new Set(htmls.map(normalizeHtml))];
+}
+function uniqueSnapshotTexts(failure) {
+  const values = failure.traceContext?.domSnapshots.map((snapshot2) => `${snapshot2.text ?? ""} ${snapshot2.html ?? ""}`.replace(/\s+/g, " ").trim()) ?? [];
+  return [...new Set(values.filter(Boolean))];
+}
+function countRoleElements(html, role, name) {
+  const elementPattern = /<([a-zA-Z][\w:-]*)([^>]*)>([^<]*)/g;
+  let count = 0;
+  let match;
+  while ((match = elementPattern.exec(html)) !== null) {
+    const [, tag, attrs, text] = match;
+    const elementRole = attrValue(attrs, "role") ?? roleFromTag2(tag.toLowerCase(), attrs);
+    const elementName = attrValue(attrs, "aria-label") ?? text.replace(/\s+/g, " ").trim();
+    if (elementRole === role && elementName === name) {
+      count += 1;
+    }
+  }
+  return count;
+}
+function roleFromTag2(tag, attrs) {
+  if (tag === "button")
+    return "button";
+  if (tag === "a" && attrValue(attrs, "href"))
+    return "link";
+  if (tag === "input") {
+    const type = attrValue(attrs, "type");
+    if (type === "submit" || type === "button")
+      return "button";
+    return "textbox";
+  }
+  if (/^h[1-6]$/.test(tag))
+    return "heading";
+  return void 0;
+}
+function attrValue(attrs, name) {
+  const match = attrs.match(new RegExp(`${name}=["']([^"']+)["']`));
+  return match?.[1];
+}
+function normalizeHtml(html) {
+  return html.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
 }
 function parseRoleLocator(locator) {
   const match = locator.match(/getByRole\("([^"]+)",\s*\{\s*name:\s*"([^"]+)"\s*\}\)/);
@@ -311968,14 +312022,20 @@ function createDiagnostic(suggestion, severity, message) {
 // ../core/dist/cache.js
 var import_promises5 = require("node:fs/promises");
 async function readHealCache(cachePath) {
+  let raw;
   try {
-    const raw = await (0, import_promises5.readFile)(cachePath, "utf8");
+    raw = await (0, import_promises5.readFile)(cachePath, "utf8");
+  } catch {
+    return { version: 1, entries: [] };
+  }
+  try {
     const parsed = JSON.parse(raw);
     return {
       version: 1,
       entries: Array.isArray(parsed.entries) ? parsed.entries : []
     };
-  } catch {
+  } catch (error2) {
+    console.warn(`Heal cache ignored: ${cachePath} is not valid JSON (${error2 instanceof Error ? error2.message : String(error2)})`);
     return { version: 1, entries: [] };
   }
 }
@@ -312485,7 +312545,7 @@ async function run() {
   const minConfidence = Number(getActionInput("min-confidence", "HELIX_MIN_CONFIDENCE", "0.75"));
   const token = getActionInput("github-token", "HELIX_GITHUB_TOKEN", "");
   const resolvedTracePath = tracePath ? (0, import_node_path3.resolve)(process.cwd(), tracePath) : void 0;
-  const traceContext = resolvedTracePath && await exists3(resolvedTracePath) ? await extractTraceContext(resolvedTracePath) : void 0;
+  const traceContext = await readOptionalTraceContext(resolvedTracePath);
   const failures = (await ingestPlaywrightJsonReport((0, import_node_path3.resolve)(process.cwd(), reportPath))).map((failure) => ({
     ...failure,
     traceContext: traceContext ?? failure.traceContext,
@@ -312548,6 +312608,19 @@ async function run() {
     }
   } else {
     info("No pull request context or token found; skipped PR comment.");
+  }
+}
+async function readOptionalTraceContext(tracePath) {
+  if (!tracePath || !await exists3(tracePath)) {
+    return void 0;
+  }
+  try {
+    return await extractTraceContext(tracePath);
+  } catch (error2) {
+    warning(
+      `Trace context skipped: ${tracePath} could not be read (${error2 instanceof Error ? error2.message : String(error2)})`
+    );
+    return void 0;
   }
 }
 function getActionInput(name, envName, fallback) {

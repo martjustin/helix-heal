@@ -140,6 +140,23 @@ async function assertPage(page, viewportName) {
     }
 
     await page.locator("[data-module-search]").fill("");
+
+    await page.evaluate(() => {
+      for (const selector of ['[data-analytics="install_click"]', '[data-analytics="repo_click"]']) {
+        const element = document.querySelector(selector);
+        element?.addEventListener("click", (event) => event.preventDefault(), { once: true });
+        element?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+      }
+    });
+    const analyticsEvents = await page.evaluate(() => {
+      return JSON.parse(localStorage.getItem("helix_analytics_events") || "[]").map((event) => event.event);
+    });
+
+    for (const expectedEvent of ["page_view", "install_click", "repo_click"]) {
+      if (!analyticsEvents.includes(expectedEvent)) {
+        throw new Error(`Analytics event was not recorded: ${expectedEvent}`);
+      }
+    }
   }
 }
 

@@ -89,11 +89,8 @@ function countRoleMatches(role: string, name: string, failure: NormalizedFailure
     return axMatches;
   }
 
-  return context.domSnapshots.reduce((count, snapshot) => {
-    const html = snapshot.html ?? "";
-    const rolePattern = new RegExp(`role=["']${escapeRegExp(role)}["']`, "g");
-    const namePattern = new RegExp(escapeRegExp(name), "g");
-    return count + Math.min(countRegex(html, rolePattern), countRegex(html, namePattern));
+  return uniqueSnapshotHtmls(failure).reduce((count, html) => {
+    return count + countRoleElements(html, role, name);
   }, 0);
 }
 
@@ -105,21 +102,72 @@ function countTestIdMatches(testId: string, failure: NormalizedFailure): number 
     node.selector?.includes(testId)
   ).length;
 
-  const domMatches = context.domSnapshots.reduce((count, snapshot) => {
-    const html = snapshot.html ?? "";
+  const domMatches = uniqueSnapshotHtmls(failure).reduce((count, html) => {
     return count + countRegex(html, new RegExp(`data-testid=["']${escapeRegExp(testId)}["']`, "g"));
   }, 0);
 
-  return Math.max(selectorMatches > 0 ? 1 : 0, domMatches > 0 ? 1 : 0);
+  return Math.max(selectorMatches, domMatches);
 }
 
 function countTextMatches(text: string, failure: NormalizedFailure): number {
   const context = failure.traceContext;
   if (!context) return 0;
 
-  return context.domSnapshots.reduce((count, snapshot) => {
-    return count + countOccurrences(`${snapshot.text ?? ""} ${snapshot.html ?? ""}`, text);
+  return uniqueSnapshotTexts(failure).reduce((count, snapshot) => {
+    return count + countOccurrences(snapshot, text);
   }, 0);
+}
+
+function uniqueSnapshotHtmls(failure: NormalizedFailure): string[] {
+  const htmls = failure.traceContext?.domSnapshots.map((snapshot) => snapshot.html ?? "").filter(Boolean) ?? [];
+  return [...new Set(htmls.map(normalizeHtml))];
+}
+
+function uniqueSnapshotTexts(failure: NormalizedFailure): string[] {
+  const values =
+    failure.traceContext?.domSnapshots.map((snapshot) =>
+      `${snapshot.text ?? ""} ${snapshot.html ?? ""}`.replace(/\s+/g, " ").trim()
+    ) ?? [];
+  return [...new Set(values.filter(Boolean))];
+}
+
+function countRoleElements(html: string, role: string, name: string): number {
+  const elementPattern = /<([a-zA-Z][\w:-]*)([^>]*)>([^<]*)/g;
+  let count = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = elementPattern.exec(html)) !== null) {
+    const [, tag, attrs, text] = match;
+    const elementRole = attrValue(attrs, "role") ?? roleFromTag(tag.toLowerCase(), attrs);
+    const elementName = attrValue(attrs, "aria-label") ?? text.replace(/\s+/g, " ").trim();
+
+    if (elementRole === role && elementName === name) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+function roleFromTag(tag: string, attrs: string): string | undefined {
+  if (tag === "button") return "button";
+  if (tag === "a" && attrValue(attrs, "href")) return "link";
+  if (tag === "input") {
+    const type = attrValue(attrs, "type");
+    if (type === "submit" || type === "button") return "button";
+    return "textbox";
+  }
+  if (/^h[1-6]$/.test(tag)) return "heading";
+  return undefined;
+}
+
+function attrValue(attrs: string, name: string): string | undefined {
+  const match = attrs.match(new RegExp(`${name}=["']([^"']+)["']`));
+  return match?.[1];
+}
+
+function normalizeHtml(html: string): string {
+  return html.replace(/>\s+</g, "><").replace(/\s+/g, " ").trim();
 }
 
 function parseRoleLocator(locator: string): { role: string; name: string } | undefined {

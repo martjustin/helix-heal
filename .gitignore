@@ -12,9 +12,12 @@ test-results/
 .helix/*.md
 .helix/*.patch
 .helix/*.html
+.helix/e2e-*/
+.helix/product-readiness-e2e.json
 helix-heal-report.md
 helix-heal.patch
 helix-heal-dashboard.html
+npm_recovery_codes.txt
 .env
 .env.*
 !.env.example
