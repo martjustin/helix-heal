@@ -1,24 +1,27 @@
 :root {
   color-scheme: light;
-  --ink: #070b14;
-  --text: #1d2634;
-  --muted: #637083;
+  --ink: #070a12;
+  --text: #182133;
+  --muted: #5e6a7d;
   --quiet: #8792a3;
-  --line: #dfe5ec;
-  --page: #f6f7f9;
+  --line: #dce4ee;
+  --page: #f4f7fb;
   --paper: #ffffff;
-  --soft-orange: #fff3ed;
-  --soft-blue: #edf4ff;
-  --soft-green: #eafbf3;
-  --soft-purple: #f5eaff;
-  --brand: #c93604;
-  --brand-dark: #b93204;
+  --soft-orange: #fff0e8;
+  --soft-blue: #eaf3ff;
+  --soft-green: #e8fbf1;
+  --soft-purple: #f4e9ff;
+  --brand: #d93405;
+  --brand-dark: #b72b03;
+  --accent: #101828;
   --green: #13b86f;
   --blue: #2f7ef7;
   --purple: #a33cff;
   --gold: #f0a600;
   --teal: #0cb7a3;
-  --shadow: 0 18px 52px rgba(20, 28, 40, 0.08);
+  --shadow: 0 18px 52px rgba(18, 28, 45, 0.09);
+  --font-sans: "Space Grotesk", "Inter Tight", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 }
 
 * {
@@ -33,8 +36,9 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--page);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
+  font-weight: 500;
 }
 
 a {
@@ -155,6 +159,7 @@ nav a {
   padding: 8px 12px;
   color: #020711;
   border-radius: 8px;
+  font-weight: 600;
   text-decoration: none;
 }
 
@@ -277,7 +282,8 @@ nav a.active {
   margin-bottom: 24px;
   padding: 24px;
   background:
-    linear-gradient(135deg, rgba(255, 243, 237, 0.94), rgba(255, 255, 255, 0.62) 44%, rgba(237, 244, 255, 0.7)),
+    radial-gradient(circle at 70% 24%, rgba(47, 126, 247, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 240, 232, 0.98), rgba(255, 255, 255, 0.78) 45%, rgba(234, 243, 255, 0.76)),
     var(--paper);
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -312,7 +318,7 @@ h1 {
   margin: 0;
   color: var(--ink);
   font-size: clamp(34px, 3.8vw, 62px);
-  font-weight: 900;
+  font-weight: 800;
   line-height: 0.98;
   letter-spacing: 0;
 }
@@ -338,6 +344,7 @@ h3 {
   color: #526074;
   font-size: 16px;
   line-height: 1.62;
+  font-weight: 500;
 }
 
 .intro-actions {
@@ -359,7 +366,8 @@ h3 {
 
 .primary-action {
   color: #fff;
-  background: var(--brand);
+  background: linear-gradient(135deg, var(--brand), #f05a1a);
+  box-shadow: 0 12px 26px rgba(217, 52, 5, 0.22);
 }
 
 .secondary-action {
@@ -384,7 +392,7 @@ h3 {
 .hero-command span {
   overflow-x: auto;
   white-space: nowrap;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
 }
 
@@ -456,39 +464,191 @@ h3 {
   font-size: 12px;
 }
 
-.demo-card {
-  margin: 0;
+.repair-console {
   overflow: hidden;
-  background: var(--paper);
-  border: 1px solid var(--line);
+  background: #0f1724;
+  border: 1px solid #253249;
+  border-radius: 10px;
+  box-shadow: 0 28px 80px rgba(15, 23, 36, 0.18);
+}
+
+.console-chrome {
+  display: flex;
+  gap: 7px;
+  padding: 13px 15px;
+  background: #151f30;
+  border-bottom: 1px solid #26344c;
+}
+
+.console-chrome span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff6b42;
+}
+
+.console-chrome span:nth-child(2) {
+  background: #f7b731;
+}
+
+.console-chrome span:nth-child(3) {
+  background: #18c982;
+}
+
+.console-body {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 18px;
+  min-height: 430px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(47, 126, 247, 0.12), rgba(217, 52, 5, 0.08)),
+    #111827;
+}
+
+.console-rail {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  box-shadow: var(--shadow);
-  align-self: start;
 }
 
-.demo-card img {
-  display: block;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-  object-position: center top;
-  background: #f6f7f9;
+.rail-step {
+  min-height: 34px;
+  padding: 9px 10px;
+  color: #9aa7bb;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.demo-card figcaption {
+.rail-step.active {
+  color: #fff;
+  background: rgba(217, 52, 5, 0.88);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.console-main {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.console-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  color: #526074;
-  font-size: 12px;
-  border-top: 1px solid var(--line);
+  gap: 14px;
+  padding: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
 }
 
-.demo-card figcaption strong {
-  color: #00984f;
+.console-label,
+.console-cards span {
+  display: block;
+  color: #9aa7bb;
   font-size: 12px;
+}
+
+.console-head strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.confidence-pill {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  color: #062b18;
+  background: #64f3a6;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.console-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.console-cards article {
+  min-height: 88px;
+  padding: 14px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+}
+
+.console-cards strong {
+  display: block;
+  margin-top: 18px;
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.diff-panel {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: #070b14;
+  border: 1px solid #26344c;
+  border-radius: 8px;
+}
+
+.diff-panel div,
+.console-command {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.diff-panel span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 10px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.diff-old {
+  color: #ffb4a0;
+  background: rgba(255, 107, 66, 0.14);
+}
+
+.diff-new {
+  color: #78f2b0;
+  background: rgba(19, 184, 111, 0.16);
+}
+
+.diff-panel code,
+.console-command code {
+  overflow-x: auto;
+  color: #e8edf7;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.console-command {
+  padding: 13px 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
 }
 
 .kpi-grid {
@@ -852,7 +1012,7 @@ pre {
 }
 
 code {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-mono);
 }
 
 .action-section {
@@ -1064,9 +1224,24 @@ code {
   }
 
   .demo-topline,
-  .demo-card figcaption {
+  .console-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .console-body {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .console-rail,
+  .console-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .console-head strong {
+    font-size: 20px;
   }
 
 }

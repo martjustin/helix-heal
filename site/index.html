@@ -9,7 +9,12 @@
       content="Helix Heal is a local-first Playwright locator repair console that turns failed CI evidence into validated, reviewable selector patches."
     />
     <meta name="helix-analytics-endpoint" content="" />
-    <link rel="preload" href="./assets/helix-demo.gif" as="image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="preload" href="./assets/helix-report-preview.png" as="image" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -122,19 +127,54 @@
             </div>
             <div class="intro-demo">
               <div class="demo-topline">
-                <span>60-second repair walkthrough</span>
-                <strong>fail -> analyze -> patch -> green</strong>
+                <span>Repair console preview</span>
+                <strong>trace-backed, review-first</strong>
               </div>
-              <figure class="demo-card" aria-label="60-second Helix Heal demo">
-                <img
-                  src="./assets/helix-demo.gif"
-                  alt="Animated 60-second demo showing a failed Playwright run moving through Helix analysis, validation, patch generation, and a green rerun"
-                />
-                <figcaption>
-                  <span>Evidence-backed locator repair</span>
-                  <strong>0.85+ confidence gate</strong>
-                </figcaption>
-              </figure>
+              <div class="repair-console" aria-label="Helix Heal repair console preview">
+                <div class="console-chrome" aria-hidden="true">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+                <div class="console-body">
+                  <div class="console-rail" aria-label="Repair stages">
+                    <span class="rail-step active">Report</span>
+                    <span class="rail-step active">Trace</span>
+                    <span class="rail-step active">Validate</span>
+                    <span class="rail-step">Patch</span>
+                  </div>
+                  <div class="console-main">
+                    <div class="console-head">
+                      <div>
+                        <span class="console-label">Failed locator</span>
+                        <strong>login.spec.ts:12</strong>
+                      </div>
+                      <span class="confidence-pill">0.87 ready</span>
+                    </div>
+                    <div class="console-cards" aria-label="Repair evidence">
+                      <article>
+                        <span>Evidence</span>
+                        <strong>trace + DOM</strong>
+                      </article>
+                      <article>
+                        <span>Risk</span>
+                        <strong>unique role</strong>
+                      </article>
+                      <article>
+                        <span>Patch</span>
+                        <strong>dry-run</strong>
+                      </article>
+                    </div>
+                    <div class="diff-panel" aria-label="Suggested selector patch">
+                      <div><span class="diff-old">-</span><code>page.getByText("Sign in")</code></div>
+                      <div><span class="diff-new">+</span><code>page.getByRole("button", { name: "Log in" })</code></div>
+                    </div>
+                    <div class="console-command">
+                      <code>helix-heal patch --dry-run --min-confidence 0.85</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
