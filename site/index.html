@@ -89,25 +89,53 @@
 
         <main id="main" class="content">
           <section class="intro" aria-labelledby="page-title">
-            <div>
+            <div class="intro-copy">
               <p class="eyebrow">Self-healing Playwright operations</p>
-              <h1 id="page-title">Helix Heal Overview</h1>
+              <h1 id="page-title">Helix Heal fixes broken Playwright locators before they stall the release.</h1>
               <p>
-                A local-first repair layer for teams who need broken locators fixed with evidence,
-                confidence, and reviewable patches after a failed CI run.
+                Helix Heal reads failed reports, trace evidence, and DOM snapshots, then returns
+                confidence-ranked locator repairs as reviewable dry-run patches. Local-first by
+                default. No account. No artifact upload.
               </p>
               <div class="intro-actions">
-                <a class="primary-action" href="#install" data-analytics="install_click">Start healing</a>
-                <a class="secondary-action" href="#walkthrough">See walkthrough</a>
+                <a class="primary-action" href="#install" data-analytics="install_click">Run the free CLI</a>
+                <a class="secondary-action" href="#walkthrough">Watch fail to green</a>
+              </div>
+              <div class="hero-command" aria-label="Helix Heal install command">
+                <span>npx helix-heal analyze --report playwright-report.json --trace test-results</span>
+                <small>Works after a failed Playwright job</small>
+              </div>
+              <div class="hero-proof" aria-label="Product trust signals">
+                <article>
+                  <strong>Dry-run first</strong>
+                  <span>review exact diffs before code changes</span>
+                </article>
+                <article>
+                  <strong>Local evidence</strong>
+                  <span>reports and traces stay on disk</span>
+                </article>
+                <article>
+                  <strong>CI-ready</strong>
+                  <span>GitHub Action comments with patch artifacts</span>
+                </article>
               </div>
             </div>
-            <figure class="demo-card" aria-label="60-second Helix Heal demo">
-              <img
-                src="./assets/helix-demo.gif"
-                alt="Animated 60-second demo showing a failed Playwright run moving through Helix analysis, validation, patch generation, and a green rerun"
-              />
-              <figcaption>60-second demo: fail, analyze, patch, rerun green</figcaption>
-            </figure>
+            <div class="intro-demo">
+              <div class="demo-topline">
+                <span>60-second repair walkthrough</span>
+                <strong>fail -> analyze -> patch -> green</strong>
+              </div>
+              <figure class="demo-card" aria-label="60-second Helix Heal demo">
+                <img
+                  src="./assets/helix-demo.gif"
+                  alt="Animated 60-second demo showing a failed Playwright run moving through Helix analysis, validation, patch generation, and a green rerun"
+                />
+                <figcaption>
+                  <span>Evidence-backed locator repair</span>
+                  <strong>0.85+ confidence gate</strong>
+                </figcaption>
+              </figure>
+            </div>
           </section>
 
           <section class="kpi-grid" aria-label="Product proof points">
